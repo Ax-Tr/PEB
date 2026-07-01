@@ -36,6 +36,28 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# generated native folders
+# generated native folders (root-level Expo prototype only; mobile/ keeps its own)
 /ios
 /android
+
+# --- Java / Gradle backend ---
+.gradle/
+**/build/
+!gradle-wrapper.jar
+!**/src/**/build/
+build-logic/.gradle/
+*.class
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+out/
+
+# Local secrets / env
+backend/**/.env
+infra/**/.env
+*.tfstate
+*.tfstate.*
+.terraform/

@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${IDENTITY_JWKS_URI:http://localhost:8081/oauth2/jwks}
+  cloud:
+    gateway:
+      default-filters:
+        # Strip the routing prefix before forwarding to the service.
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      routes:
+        - id: identity-service
+          uri: ${IDENTITY_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/**,/api/v1/users/**,/api/v1/roles/**,/api/v1/ping
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+            - name: CircuitBreaker
+              args:
+                name: identityCb
+                fallbackUri: forward:/fallback/identity
+        - id: tenant-service
+          uri: ${TENANT_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/businesses/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: tenantCb
+                fallbackUri: forward:/fallback/identity
+        - id: customer-service
+          uri: ${CUSTOMER_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/customers/**
+        - id: vendor-service
+          uri: ${VENDOR_URI:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/vendors/**
+        - id: product-service
+          uri: ${PRODUCT_URI:http://localhost:8085}
+          predicates:
+            - Path=/api/v1/products/**,/api/v1/hsn-sac/**
+        - id: employee-payroll-service
+          uri: ${EMPLOYEE_URI:http://localhost:8086}
+          predicates:
+            - Path=/api/v1/employees/**
+        - id: payment-collection-service
+          uri: ${PAYMENT_URI:http://localhost:8087}
+          predicates:
+            - Path=/api/v1/payment-requests/**,/api/v1/payments/**,/api/v1/webhooks/payments/**
+        - id: invoice-gst-service
+          uri: ${INVOICE_URI:http://localhost:8088}
+          predicates:
+            - Path=/api/v1/invoices/**,/api/v1/gst/**
+        - id: accounting-ledger-service
+          uri: ${LEDGER_URI:http://localhost:8089}
+          predicates:
+            - Path=/api/v1/chart-of-accounts/**,/api/v1/journals/**,/api/v1/ledgers/**,/api/v1/reports/**,/api/v1/periods/**
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 5s
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    enabled: false
+
+# Sprint 1 will add: JWT resource-server (JWKS from Keycloak), tenant-claim → X-Tenant-Id header,
+# and a KeyResolver bean for per-principal rate limiting.

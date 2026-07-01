@@ -1,0 +1,15 @@
+# Local profile — points at the docker-compose stack (infra/docker/compose).
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/identity_db
+    username: peb
+    password: peb
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:19092

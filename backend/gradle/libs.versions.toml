@@ -1,0 +1,42 @@
+# PEB backend version catalog — single source of dependency/plugin versions.
+[versions]
+java = "21"
+springBoot = "3.3.5"
+springDepMgmt = "1.1.6"
+springCloud = "2023.0.3"
+mapstruct = "1.6.2"
+resilience4j = "2.2.0"
+testcontainers = "1.20.3"
+ulid = "5.2.3"
+springdoc = "2.6.0"
+jooq = "3.19.14"
+logstashEncoder = "8.0"
+otel = "2.9.0"
+spotless = "6.25.0"
+googleJavaFormat = "1.24.0"
+spotbugs = "6.0.26"
+
+[libraries]
+# BOMs
+spring-cloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "springCloud" }
+otel-bom = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom", version.ref = "otel" }
+# Common runtime libs
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
+ulid-creator = { module = "com.github.f4b6a3:ulid-creator", version.ref = "ulid" }
+springdoc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashEncoder" }
+otel-spring-starter = { module = "io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter" }
+# Test
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+
+# Plugin marker artifacts (consumed by build-logic so convention plugins can apply them by id)
+plugin-springBoot = { module = "org.springframework.boot:org.springframework.boot.gradle.plugin", version.ref = "springBoot" }
+plugin-springDepMgmt = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "springDepMgmt" }
+plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+
+[plugins]
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+springDepMgmt = { id = "io.spring.dependency-management", version.ref = "springDepMgmt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

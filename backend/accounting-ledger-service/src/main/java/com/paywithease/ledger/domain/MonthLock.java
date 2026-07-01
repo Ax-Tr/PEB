@@ -1,0 +1,57 @@
+package com.paywithease.ledger.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.Instant;
+
+/** Append-only lock/reopen action log (maker-checker evidence, alongside audit_events). */
+@Entity
+@Table(name = "month_locks")
+public class MonthLock {
+
+  @Id
+  @Column(length = 26)
+  private String id;
+
+  @Column(name = "tenant_id", length = 26, nullable = false)
+  private String tenantId;
+
+  @Column(name = "period_id", length = 26, nullable = false)
+  private String periodId;
+
+  @Column(nullable = false)
+  private String action; // LOCK, REOPEN
+
+  private String reason;
+
+  @Column(name = "actor_id", length = 26)
+  private String actorId;
+
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt;
+
+  protected MonthLock() {}
+
+  public MonthLock(
+      String id,
+      String tenantId,
+      String periodId,
+      String action,
+      String reason,
+      String actorId,
+      Instant now) {
+    this.id = id;
+    this.tenantId = tenantId;
+    this.periodId = periodId;
+    this.action = action;
+    this.reason = reason;
+    this.actorId = actorId;
+    this.createdAt = now;
+  }
+
+  public String getId() {
+    return id;
+  }
+}

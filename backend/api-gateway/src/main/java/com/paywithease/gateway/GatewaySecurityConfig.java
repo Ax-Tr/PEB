@@ -1,0 +1,37 @@
+package com.paywithease.gateway;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+
+/**
+ * Edge authentication. The gateway validates access tokens (JWKS published by identity-service) and
+ * rejects unauthenticated calls to protected routes before they reach any service. Auth bootstrap
+ * endpoints (OTP request/verify, token refresh), health, and docs are open.
+ */
+@Configuration
+@EnableWebFluxSecurity
+public class GatewaySecurityConfig {
+
+  private static final String[] PUBLIC = {
+    "/api/v1/auth/otp/request",
+    "/api/v1/auth/otp/verify",
+    "/api/v1/auth/token/refresh",
+    "/api/v1/ping",
+    "/api/v1/webhooks/payments/**",
+    "/fallback/**",
+    "/actuator/health/**",
+    "/actuator/info",
+    "/actuator/prometheus"
+  };
+
+  @Bean
+  public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+        .authorizeExchange(ex -> ex.pathMatchers(PUBLIC).permitAll().anyExchange().authenticated())
+        .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> {}));
+    return http.build();
+  }
+}

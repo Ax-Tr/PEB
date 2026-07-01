@@ -1,0 +1,70 @@
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci.yml'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build · test · scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Spotless (format check)
+        run: ./gradlew spotlessCheck
+
+      - name: Build + unit/integration tests (Testcontainers)
+        run: ./gradlew build
+        # Docker is available on ubuntu-latest runners for Testcontainers.
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: backend/**/build/reports/tests/**
+
+  security-scans:
+    name: secrets · dependencies · image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secrets scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency & filesystem vuln scan (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+# Gates enforced above: Spotless formatting, compile+tests (with coverage verification via
+# `check`), secrets scan, dependency/fs vuln scan. Contract tests, container image scan, and
+# OWASP API/Mobile scans are added as their sprints land (see engineering-standards.md §3).
