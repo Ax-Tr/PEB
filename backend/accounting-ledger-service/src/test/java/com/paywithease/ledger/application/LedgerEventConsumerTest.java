@@ -97,4 +97,76 @@ class LedgerEventConsumerTest {
     assertThat(debit).isEqualTo(credit);
     assertThat(cmd.sourceEventId()).isEqualTo("evt2");
   }
+
+  @Test
+  void purchaseBillCreatedPostsBalancedJournal() {
+    String message =
+        """
+        {
+          "eventType": "PURCHASE_BILL_CREATED",
+          "tenantId": "tenant1",
+          "aggregateId": "pb1",
+          "payload": { "purchaseBillId": "pb1", "netMinor": 100000, "inputGstMinor": 18000 },
+          "headers": { "eventId": "evt3", "correlationId": "corr3", "partitionKey": "tenant1" }
+        }
+        """;
+
+    consumer.onEvent(message);
+
+    ArgumentCaptor<JournalCommand> captor = ArgumentCaptor.forClass(JournalCommand.class);
+    verify(postingService, times(1)).post(captor.capture(), any());
+    JournalCommand cmd = captor.getValue();
+    long debit = cmd.lines().stream().mapToLong(JournalCommand.Line::debitMinor).sum();
+    long credit = cmd.lines().stream().mapToLong(JournalCommand.Line::creditMinor).sum();
+    assertThat(debit).isEqualTo(credit);
+    assertThat(cmd.sourceEventId()).isEqualTo("evt3");
+  }
+
+  @Test
+  void vendorPaymentCompletedPostsBalancedJournal() {
+    String message =
+        """
+        {
+          "eventType": "VENDOR_PAYMENT_COMPLETED",
+          "tenantId": "tenant1",
+          "aggregateId": "po1",
+          "payload": { "payoutId": "po1", "amountMinor": 118000 },
+          "headers": { "eventId": "evt4", "correlationId": "corr4", "partitionKey": "tenant1" }
+        }
+        """;
+
+    consumer.onEvent(message);
+
+    ArgumentCaptor<JournalCommand> captor = ArgumentCaptor.forClass(JournalCommand.class);
+    verify(postingService, times(1)).post(captor.capture(), any());
+    JournalCommand cmd = captor.getValue();
+    long debit = cmd.lines().stream().mapToLong(JournalCommand.Line::debitMinor).sum();
+    long credit = cmd.lines().stream().mapToLong(JournalCommand.Line::creditMinor).sum();
+    assertThat(debit).isEqualTo(credit);
+    assertThat(cmd.sourceEventId()).isEqualTo("evt4");
+  }
+
+  @Test
+  void salaryRunCreatedPostsBalancedJournal() {
+    String message =
+        """
+        {
+          "eventType": "SALARY_RUN_CREATED",
+          "tenantId": "tenant1",
+          "aggregateId": "sr1",
+          "payload": { "salaryRunId": "sr1", "totalEarningsMinor": 2000000, "totalNetMinor": 1845000, "totalStatutoryMinor": 155000, "totalTdsMinor": 0 },
+          "headers": { "eventId": "evt5", "correlationId": "corr5", "partitionKey": "tenant1" }
+        }
+        """;
+
+    consumer.onEvent(message);
+
+    ArgumentCaptor<JournalCommand> captor = ArgumentCaptor.forClass(JournalCommand.class);
+    verify(postingService, times(1)).post(captor.capture(), any());
+    JournalCommand cmd = captor.getValue();
+    long debit = cmd.lines().stream().mapToLong(JournalCommand.Line::debitMinor).sum();
+    long credit = cmd.lines().stream().mapToLong(JournalCommand.Line::creditMinor).sum();
+    assertThat(debit).isEqualTo(credit);
+    assertThat(cmd.sourceEventId()).isEqualTo("evt5");
+  }
 }

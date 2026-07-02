@@ -6,6 +6,7 @@ import com.paywithease.common.audit.AuditWriter;
 import com.paywithease.common.error.ApiException;
 import com.paywithease.common.error.ErrorCode;
 import com.paywithease.common.event.EventEnvelope;
+import com.paywithease.common.gst.GstCalculator;
 import com.paywithease.common.ids.Ulid;
 import com.paywithease.common.outbox.OutboxWriter;
 import com.paywithease.common.tenant.TenantContext;
@@ -14,7 +15,6 @@ import com.paywithease.invoice.domain.GstTaxLine;
 import com.paywithease.invoice.domain.Invoice;
 import com.paywithease.invoice.domain.InvoiceItem;
 import com.paywithease.invoice.domain.SupplyType;
-import com.paywithease.invoice.domain.gst.GstCalculator;
 import com.paywithease.invoice.infrastructure.GstTaxLineRepository;
 import com.paywithease.invoice.infrastructure.InvoiceItemRepository;
 import com.paywithease.invoice.infrastructure.InvoiceRepository;
@@ -182,7 +182,7 @@ public class InvoiceService {
             result.totalSgstMinor(),
             result.totalIgstMinor(),
             result.totalTaxMinor(),
-            result.invoiceTotalMinor(),
+            result.documentTotalMinor(),
             now);
     invoices.save(invoice);
 

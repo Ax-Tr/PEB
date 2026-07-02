@@ -44,7 +44,14 @@ public class LedgerEventConsumer {
   }
 
   @KafkaListener(
-      topics = {"tenant.events", "invoice.events", "payment.events"},
+      topics = {
+        "tenant.events",
+        "invoice.events",
+        "payment.events",
+        "purchase.events",
+        "payout.events",
+        "payroll.events"
+      },
       groupId = "accounting-ledger")
   public void onEvent(String message) {
     try {
@@ -107,6 +114,57 @@ public class LedgerEventConsumer {
                   eventId,
                   correlationId,
                   "Payment " + payload.path("reference").asText(""));
+          postingService.post(cmd, ACTOR);
+        }
+      }
+      case "PURCHASE_BILL_CREATED" -> {
+        long netMinor = payload.path("netMinor").asLong(0);
+        long inputGstMinor = payload.path("inputGstMinor").asLong(0);
+        if (netMinor + inputGstMinor > 0) {
+          JournalCommand cmd =
+              PostingTemplates.vendorPurchase(
+                  entryDate,
+                  netMinor,
+                  inputGstMinor,
+                  "purchase-expense-service",
+                  eventId,
+                  correlationId,
+                  "Purchase " + payload.path("purchaseBillId").asText(""));
+          postingService.post(cmd, ACTOR);
+        }
+      }
+      case "VENDOR_PAYMENT_COMPLETED" -> {
+        long amountMinor = payload.path("amountMinor").asLong(0);
+        if (amountMinor > 0) {
+          JournalCommand cmd =
+              PostingTemplates.vendorPayment(
+                  entryDate,
+                  amountMinor,
+                  Accounts.BANK,
+                  "payout-service",
+                  eventId,
+                  correlationId,
+                  "Vendor payment " + payload.path("payoutId").asText(""));
+          postingService.post(cmd, ACTOR);
+        }
+      }
+      case "SALARY_RUN_CREATED" -> {
+        long totalEarnings = payload.path("totalEarningsMinor").asLong(0);
+        long net = payload.path("totalNetMinor").asLong(0);
+        long statutory = payload.path("totalStatutoryMinor").asLong(0);
+        long tds = payload.path("totalTdsMinor").asLong(0);
+        if (totalEarnings > 0) {
+          JournalCommand cmd =
+              PostingTemplates.salaryRun(
+                  entryDate,
+                  totalEarnings,
+                  net,
+                  statutory,
+                  tds,
+                  "employee-payroll-service",
+                  eventId,
+                  correlationId,
+                  "Payroll " + payload.path("salaryRunId").asText(""));
           postingService.post(cmd, ACTOR);
         }
       }

@@ -52,6 +52,40 @@ class PostingTemplatesTest {
   }
 
   @Test
+  void vendorPurchaseBalances() {
+    JournalCommand j =
+        PostingTemplates.vendorPurchase(
+            DATE, 100000, 18000, "purchase-expense-service", "b1", "c", "PB1");
+    assertBalanced(j);
+    // Purchase 100000 Dr; Input GST 18000 Dr; Vendor Payable 118000 Cr
+    assertThat(lineDebit(j, Accounts.COGS)).isEqualTo(100000);
+    assertThat(lineDebit(j, Accounts.INPUT_GST)).isEqualTo(18000);
+    assertThat(lineCredit(j, Accounts.ACCOUNTS_PAYABLE)).isEqualTo(118000);
+  }
+
+  @Test
+  void vendorPaymentBalances() {
+    JournalCommand j =
+        PostingTemplates.vendorPayment(
+            DATE, 118000, Accounts.BANK, "payout-service", "po1", "c", "PAY1");
+    assertBalanced(j);
+    assertThat(lineDebit(j, Accounts.ACCOUNTS_PAYABLE)).isEqualTo(118000);
+    assertThat(lineCredit(j, Accounts.BANK)).isEqualTo(118000);
+  }
+
+  @Test
+  void salaryRunBalances() {
+    // earnings 2,000,000 = net 1,845,000 + statutory 155,000 + tds 0
+    JournalCommand j =
+        PostingTemplates.salaryRun(
+            DATE, 2_000_000, 1_845_000, 155_000, 0, "employee-payroll-service", "sr1", "c", "PR1");
+    assertBalanced(j);
+    assertThat(lineDebit(j, Accounts.SALARY_EXPENSE)).isEqualTo(2_000_000);
+    assertThat(lineCredit(j, Accounts.EMPLOYEE_PAYABLE)).isEqualTo(1_845_000);
+    assertThat(lineCredit(j, Accounts.STATUTORY_PAYABLE)).isEqualTo(155_000);
+  }
+
+  @Test
   void unbalancedManualCommandIsRejected() {
     assertThatThrownBy(
             () ->

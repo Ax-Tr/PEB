@@ -53,7 +53,7 @@ spring:
         - id: employee-payroll-service
           uri: ${EMPLOYEE_URI:http://localhost:8086}
           predicates:
-            - Path=/api/v1/employees/**
+            - Path=/api/v1/employees/**,/api/v1/salary-runs/**
         - id: payment-collection-service
           uri: ${PAYMENT_URI:http://localhost:8087}
           predicates:
@@ -66,6 +66,46 @@ spring:
           uri: ${LEDGER_URI:http://localhost:8089}
           predicates:
             - Path=/api/v1/chart-of-accounts/**,/api/v1/journals/**,/api/v1/ledgers/**,/api/v1/reports/**,/api/v1/periods/**
+        - id: purchase-expense-service
+          uri: ${PURCHASE_URI:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/purchase-bills/**,/api/v1/expenses/**,/api/v1/purchase-register/**
+        - id: payout-service
+          uri: ${PAYOUT_URI:http://localhost:8091}
+          predicates:
+            - Path=/api/v1/payouts/**,/api/v1/beneficiaries/**
+        - id: installment-service
+          uri: ${INSTALLMENT_URI:http://localhost:8092}
+          predicates:
+            - Path=/api/v1/installments/**
+        - id: notification-service
+          uri: ${NOTIFICATION_URI:http://localhost:8093}
+          predicates:
+            - Path=/api/v1/notifications/**,/api/v1/notification-templates/**,/api/v1/reminders/**,/api/v1/webhooks/notifications/**
+        - id: transaction-ingestion-service
+          uri: ${INGESTION_URI:http://localhost:8094}
+          predicates:
+            - Path=/api/v1/bank-accounts/**,/api/v1/bank-transactions/**,/api/v1/cash-transactions/**
+        - id: reconciliation-service
+          uri: ${RECONCILIATION_URI:http://localhost:8095}
+          predicates:
+            - Path=/api/v1/reconciliation/**
+        - id: compliance-report-service
+          uri: ${COMPLIANCE_URI:http://localhost:8096}
+          predicates:
+            - Path=/api/v1/compliance/**
+        - id: analytics-service
+          uri: ${ANALYTICS_URI:http://localhost:8097}
+          predicates:
+            - Path=/api/v1/analytics/**
+        - id: audit-evidence-service
+          uri: ${AUDIT_EVIDENCE_URI:http://localhost:8098}
+          predicates:
+            - Path=/api/v1/audit/**
+        - id: ca-collaboration-service
+          uri: ${CA_COLLABORATION_URI:http://localhost:8099}
+          predicates:
+            - Path=/api/v1/collaboration/**
       httpclient:
         connect-timeout: 2000
         response-timeout: 5s

@@ -245,6 +245,24 @@ source event; month-lock blocks edits without approval; trial balance balances.
 
 ## Sprint 6 — Vendor purchase & payout
 
+> **Status: DELIVERED (purchase-expense-service + payout-service; code + ~29 unit tests green on
+> JDK 21).** **payout-service** (built in-house — money-out, security-critical): beneficiary
+> validation (bank details as blind index), **risk-based maker-checker approval** (high-value or
+> recently-changed beneficiary → PENDING_APPROVAL; **maker can never approve their own payout**),
+> **step-up auth** (high-risk payout can't be created without `X-Step-Up-Verified`), idempotent
+> creation, and **gateway failover** (ordered providers, tries until one disburses). Emits
+> PAYOUT_APPROVAL_REQUESTED/COMPLETED + VENDOR_PAYMENT_INITIATED/COMPLETED. **purchase-expense-service**
+> (delegated): purchase bills with **input GST/ITC** via the shared engine, expenses + approval;
+> emits PURCHASE_BILL_CREATED / EXPENSE_APPROVED. **Refactor:** the GST engine moved to
+> common-libraries so invoice (output GST) and purchase (input GST) share one tax implementation.
+> **Ledger extended**: `vendorPurchase` (Purchase+Input GST Dr / Payable Cr) and `vendorPayment`
+> (Payable Dr / Bank Cr) posting templates + consumer handlers for PURCHASE_BILL_CREATED and
+> VENDOR_PAYMENT_COMPLETED (both proven to post balanced journals) — so **purchase→ledger** and
+> **payout→ledger** now flow end-to-end in code. Gateway routes + Dockerfiles added. Deferred: OCR
+> bank capture already shipped in Sprint 2's vendor-service; the **payable installment schedule
+> trigger** waits on installment-service (Sprint 8); async payout webhook confirmation is a
+> refinement. Not run here (no Docker): Testcontainers + live gateway/Kafka.
+
 **Scope:** vendor OCR bank capture (review-before-save), purchase bill entry, vendor ledger,
 full/partial vendor payment, payout maker-checker, payable schedule trigger, beneficiary validation,
 gateway failover.
@@ -265,6 +283,22 @@ before payout flagged (anomaly + step-up); purchase posts Purchase/Input-GST Dr,
 
 ## Sprint 7 — Employee payroll
 
+> **Status: DELIVERED (employee-payroll-service payroll run; code + ~25 new tests green on JDK 21).**
+> A pure **payroll calculation engine** (`PayrollCalculator`): LOP proration, **PF** (12% of basic
+> capped at the ₹15,000 wage ceiling), **ESI** (0.75% of gross, only ≤ ₹21,000), **PT** (state flat),
+> incentives, other deductions, and per-run **TDS** input — proven by an exhaustive matrix including
+> the ledger-balance identity (`totalEarnings = net + statutoryWithheld + tds`). **Statutory rates
+> are configurable constants flagged for CA/EPFO/ESIC verification** (the system never fabricates
+> compliance rules); full income-tax-slab TDS is deferred. **Salary run** is idempotent per
+> (tenant, year, month) — a month cannot be double-run — computes every active employee with a salary
+> structure, and emits SALARY_RUN_CREATED. **Payslip PDF** (OpenPDF) + `generate-payslips` emitting
+> PAYSLIP_GENERATED. **Ledger extended** with the `salaryRun` posting template (Salary Expense Dr;
+> Employee Payable + Statutory Payable + TDS Payable Cr) + consumer handler — so **payroll→ledger**
+> flows end-to-end (balanced journal verified). REST under `/api/v1/salary-runs`; gateway route +
+> relay enabled. Edge cases covered: salary run already processed, employee without salary structure,
+> LOP > working days, negative net pay. Deferred: salary bank payout runs through payout-service
+> (EMPLOYEE party type, Sprint 6); Testcontainers/live Kafka need Docker.
+
 **Scope:** salary structure, LOP, PF/ESI/PT/TDS/insurance/incentives/deductions, net salary calc,
 salary run, salary payout, payslip PDF, payroll ledger posting.
 **Stories:** owner runs monthly payroll; system computes net pay + statutory deductions; payslips
@@ -284,6 +318,21 @@ Payable Cr then Employee Payable Dr / Bank Cr on pay.
 **DoD:** cross-sprint DoD; payroll calc tests exhaustive; statutory rules sourced.
 
 ## Sprint 8 — Installment engine
+
+> **Status: DELIVERED (installment-service; code + 11 unit tests green on JDK 21).** Receivable &
+> payable **EMI schedules** with an **exact paise split** (`EmiScheduleGenerator` — remainder paise
+> spread one-per-EMI to the earliest installments so the schedule sums to the principal exactly),
+> monthly/weekly/fortnightly due dates, per-EMI **payment application with balance tracking + auto-
+> closure** at zero, and **audited modification** (reschedule the balance; paid EMIs preserved;
+> rejected if an EMI is partially paid). Idempotent per source document. Emits
+> INSTALLMENT_SCHEDULE_CREATED / INSTALLMENT_PAID (for reminders + aging). **No ledger posting here**
+> — cash movement is booked by payment-collection/payout, so the engine only tracks the schedule
+> (avoids double-entry). REST under `/api/v1/installments`; gateway route + relay enabled. Edge cases
+> covered: duplicate source, EMI already paid, partial-EMI modify guard, invalid schedule inputs.
+> Deferred: the D-3/D-1/D-day **reminders** consume these events in Sprint 9; auto-creating a
+> schedule from a partial receive/purchase is a later refinement (schedules are created explicitly
+> for now). Not run here (no Docker): Testcontainers/live Kafka.
+
 **Scope:** receivable/payable schedules, EMI due dates, EMI payment link, balance updates, closure
 logic, modification-with-audit. **Services:** installment, payment, notification, ledger.
 **DB:** installments, installment_emis. **Events:** INSTALLMENT_SCHEDULE_CREATED, INSTALLMENT_PAID.
@@ -292,6 +341,22 @@ edits audited. **Edge cases:** overpay EMI; early closure; reschedule; missed EM
 **DoD:** cross-sprint DoD; balances reconcile to ledger.
 
 ## Sprint 9 — Reminder & notification engine
+
+> **Status: DELIVERED (notification-service; code + 14 unit tests green on JDK 21).** Multi-channel
+> engine — **SMS / email / push / WhatsApp** behind a `NotificationChannel` abstraction + router
+> (dev stubs; real providers swap per environment; WhatsApp wired, live BSP gated on approval). A
+> `{{placeholder}}` **template engine**, **D-3/D-1/D-day reminder planner** (past dates skipped), a
+> scheduled sender that fires due reminders, **send with retry**, and **delivery-status tracking**:
+> a send is `SENT` only when a provider accepts it and `DELIVERED` only on a provider receipt webhook
+> — the engine never claims delivery without acknowledgement. Emits REMINDER_SENT /
+> NOTIFICATION_DELIVERED / NOTIFICATION_FAILED; reminders dedupe per (source, EMI, offset). REST for
+> templates, ad-hoc send, reminder scheduling, notification log, and the public delivery webhook;
+> gateway route + webhook exception + relay enabled. Edge cases: SMS/email/WhatsApp send failure →
+> retry then FAILED (+event); unknown template; duplicate reminder. **Reminder scheduling is
+> API-driven** (the flow supplies the recipient); auto-triggering from installment events is deferred
+> to the saga work (needs recipient/contact propagation — the installment event lacks the customer's
+> mobile). Not run here (no Docker): Testcontainers/live Kafka/live providers.
+
 **Scope:** SMS/email/push + WhatsApp readiness, D-3/D-1/D-day scheduling, template engine, delivery
 status, escalation, retry. **Services:** notification, installment, rules. **DB:**
 notification_templates, notification_logs, reminder_schedules. **Events:** REMINDER_SENT,
@@ -300,6 +365,25 @@ never mark delivered without provider ack. **Edge cases:** SMS/email/WhatsApp fa
 hours; duplicate schedule. **DoD:** cross-sprint DoD; delivery status accurate.
 
 ## Sprint 10 — Transaction monitor & bank/cash
+
+> **Status: DELIVERED (transaction-ingestion-service; code + 11 unit tests green on JDK 21).** Bank
+> account setup (account number encrypted + blind-indexed), **manual cash/bank entry**, and
+> **idempotent statement / UPI / gateway-settlement import with duplicate detection** (`DedupeKey`:
+> natural-key hash keyed on external ref (UTR/UPI id/settlement id) or account+amount+date+narration;
+> a re-imported statement never creates duplicates — import batch reports imported vs duplicate
+> counts). **Rule-based classification with confidence** (`TransactionClassifier`, a placeholder for
+> the Sprint-15 AI): high-confidence (≥0.90) auto-CONFIRMED, **low-confidence stays SUGGESTED for
+> human review** (product rule: low-confidence never auto-posted); review endpoint confirms/overrides
+> and emits TRANSACTION_CLASSIFIED. Emits BANK_TRANSACTION_IMPORTED. Unified `transactions` table
+> (source discriminator) + `bank_accounts` + `import_batches`. REST under /api/v1/bank-accounts,
+> /api/v1/cash-transactions, /api/v1/bank-transactions (+ /import, /review-queue, /{id}/review);
+> gateway route + relay enabled. **Imported rows are the external source of truth for reconciliation
+> (Sprint 11) and are NOT posted to the ledger** — payment/payout already book their own cash
+> movements, so posting here would double-count. Edge cases: duplicate statement import, duplicate
+> bank account, non-import source guard, low-confidence review. Not run here (no Docker):
+> Testcontainers/live Kafka; real statement-file parsing (CSV/MT940/OFX) is an adapter layer over the
+> row API.
+
 **Scope:** manual cash credit/debit, bank account setup, statement import, UPI import, classification
 review, duplicate detection. **Services:** transaction-ingestion, ai (classify), ledger. **DB:**
 cash_transactions, bank_accounts, bank_transactions, upi_transactions, gateway_settlements,
@@ -309,6 +393,26 @@ duplicate statement import; already-reconciled txn; malformed statement; negativ
 cross-sprint DoD; dedupe + confidence gating verified.
 
 ## Sprint 11 — Reconciliation engine
+
+> **Status: DELIVERED (reconciliation-service; code + 12 unit tests green on JDK 21).** A pure
+> **weighted match engine** (`MatchEngine`) scoring external (imported bank) items against internal
+> (payment/invoice/payout) items on the blueprint signals — **amount (decisive), reference
+> (UTR/UPI/gateway/invoice no.), date proximity, counterparty + narration similarity** — classified
+> into **AUTO (≥0.90) / SUGGESTED (≥0.60) / EXCEPTION** bands; amount- and direction-mismatches can
+> never auto-match. `ReconciliationService`: idempotent item recording, a matching run that
+> auto-matches + marks both sides reconciled, queues **suggested** matches for confirm/reject, raises
+> **exceptions** for unmatched items, and supports **manual match**; every decision audited + emits
+> RECONCILIATION_MATCHED / RECONCILIATION_EXCEPTION_CREATED. A **Kafka consumer** ingests
+> BANK_TRANSACTION_IMPORTED (external) and PAYMENT_RECEIVED / VENDOR_PAYMENT_COMPLETED /
+> INVOICE_GENERATED (internal). REST under /api/v1/reconciliation; gateway route + relay enabled.
+> **Also fixed a latent event-routing bug**: the shared `TopicResolver` was mapping VENDOR_PAYMENT_*,
+> SALARY_*, and BANK_TRANSACTION_* to the wrong/misc topics — so payout→ledger, payroll→ledger, and
+> ingestion→reconciliation flows wouldn't have connected at runtime; now routed precisely and locked
+> with a test. Edge cases: amount/direction mismatch, no candidate → exception, medium-confidence →
+> suggested (not auto), idempotent re-record, already-matched guard. Not run here (no Docker):
+> Testcontainers/live Kafka; upstream events omit the txn date (consumer uses ingest-time today) —
+> a noted event-schema enrichment.
+
 **Scope:** weighted matching (invoice↔payment, bill↔payment, payroll↔bank, gateway settlement, cash),
 suggested matches, exceptions, manual match. **Services:** reconciliation, ingestion, invoice,
 payout, ledger. **DB:** reconciliation_matches, reconciliation_exceptions. **Events:**
@@ -318,6 +422,23 @@ already reconciled; partial match; many-to-one; reversed txn. **DoD:** cross-spr
 decisions auditable; reconciliation required before compliance export.
 
 ## Sprint 12 — Compliance reports
+
+> **Status: DELIVERED (compliance-report-service; code + 18 unit tests green on JDK 21).** A pure
+> `ReportBuilder` aggregates a period read-model (SALES/PURCHASE/PAYROLL `source_records`, fed
+> idempotently by an `invoice.events`/`purchase.events`/`payroll.events` Kafka consumer that maps
+> `INVOICE_GENERATED`→SALES, `PURCHASE_BILL_CREATED`→PURCHASE, `SALARY_RUN_CREATED`→PAYROLL) into
+> GSTR-1/GSTR-3B summaries, sales/purchase registers, ITC, payroll (PF/ESI/PT), TDS and an
+> ITR-ready summary, with explicit missing-data flags (empty period, ITC-exceeds-output,
+> vendor-TDS-gap, indicative-ITR). The `ComplianceReport` state machine enforces the product rules:
+> lifecycle DRAFT → REVIEWED → APPROVED → FILED; `displayState()` surfaces **UNRECONCILED** until
+> data is reconciled; **approval is blocked until `dataReconciled`**; and **FILED is only reachable
+> with a non-blank official acknowledgement reference** (recording an ack does *not* itself file with
+> the portal). Maker-checker is enforced at the API with **distinct** authorities — review by
+> `CA`/`ACCOUNTANT`, approve by `OWNER`/`CO_OWNER`. Regeneration is allowed only while DRAFT.
+> Emits `COMPLIANCE_REPORT_GENERATED`; every state change is audited. REST under
+> `/api/v1/compliance/**` (gateway → :8096). Line-level GSTR-1 (HSN/rate) and vendor-side TDS are
+> flagged as follow-ups pending enriched upstream events. Statutory rates require CA verification.
+
 **Scope:** GST dashboard, GSTR-1 prep, GSTR-3B summary, sales/purchase register, ITC report +
 mismatch, e-invoice/e-way readiness, payroll compliance (PF/ESI/PT), TDS reports, ITR-ready
 summaries. **Services:** compliance-report, invoice, purchase, ledger, payroll, rules. **DB:**
@@ -327,6 +448,26 @@ ITC mismatch exception list. **Edge cases:** compliance rule change; unreconcile
 report export timeout. **DoD:** cross-sprint DoD; report status lifecycle enforced; CA-review gating.
 
 ## Sprint 13 — Analytics & intelligence
+
+> **Status: DELIVERED (analytics-service; code + 22 unit tests green on JDK 21).** An event-fed,
+> read-only OLAP read-model that **never queries the OLTP services' databases** — its only inputs
+> are domain events. A Kafka consumer projects `INVOICE_GENERATED`→revenue/receivables,
+> `PURCHASE_BILL_CREATED`→cost/payables, `EXPENSE_APPROVED`→operating expense,
+> `PAYMENT_RECEIVED`→cash inflow and `VENDOR_PAYMENT_COMPLETED`→cash outflow into denormalised fact
+> tables (idempotent on each aggregate's natural key). Pure, exhaustively-tested compute engines
+> drive the dashboards: `ProfitCalculator` (revenue/cost/opex → gross & net profit + margin %,
+> divide-by-zero safe), `AgingCalculator` (0–30/31–60/61–90/90+ buckets), `CashflowCalculator`
+> (per-period net + running balance), `ProfitabilityRanker`, and `Freshness`. Because analytics is
+> eventually consistent, a per-stream **freshness/staleness indicator** (`stream_watermarks` +
+> `GET /freshness`) exposes read-model lag on every dashboard. REST (all read-only GET) under
+> `/api/v1/analytics/**`, gateway → :8097. Periods are computed in **Asia/Kolkata (IST)**.
+> **Honest gaps (documented):** payment events carry no `invoiceId`, so invoice `amount_paid` stays
+> 0 and receivables age by invoice date (payment→invoice linkage needs an enriched event);
+> product/service profitability table stays empty until invoice events carry line-level detail; and
+> since the wire envelope carries no business date, periods are ingest-time IST. Production target
+> for the aggregates is ClickHouse — the read-model is engine-agnostic and Postgres is used now as
+> it is the only store verifiable in this environment.
+
 **Scope:** revenue/cost/profit/margin, cashflow, receivables/payables aging, product/service
 profitability, branch-wise; ClickHouse read-models. **Services:** analytics (+ event consumers).
 **DB:** ClickHouse materialized aggregates. **AC:** dashboards <3s; analytics never hits OLTP;
@@ -334,6 +475,31 @@ read-models eventually consistent w/ freshness indicator. **Edge cases:** late e
 timezone (IST); huge datasets. **DoD:** cross-sprint DoD; dashboard latency SLO met.
 
 ## Sprint 14 — Audit, CA & accountant workspace
+
+> **Status: DELIVERED (audit-evidence-service + ca-collaboration-service; code + ~29 unit tests
+> green on JDK 21).**
+>
+> **audit-evidence-service (:8098)** — an **immutable, append-only evidence room**. `evidence_items`
+> has no update/delete path in code AND a Postgres trigger that rejects UPDATE/DELETE, so proof
+> survives even a reversed transaction. Every item carries a SHA-256 content hash (`EvidenceIntegrity`)
+> that an auditor can independently re-verify (`POST /evidence/{id}/verify`); recording emits
+> `AUDIT_EVENT_RECORDED`. A Kafka consumer auto-captures immutable evidence for `JOURNAL_ENTRY_POSTED`
+> (incl. reversal postings) and `VENDOR_PAYMENT_COMPLETED`. `ExportJob` state machine
+> (REQUESTED→PROCESSING→COMPLETED|FAILED) backs auditor exports. REST under `/api/v1/audit/**`.
+>
+> **ca-collaboration-service (:8099)** — CA/accountant/auditor **invitations** (`CaInvite` state
+> machine PENDING→ACCEPTED→REVOKED/EXPIRED) with **revocation mid-review** (revoke immediately
+> removes active access); invite email is field-level encrypted. **Auditor collaborators are
+> read-only**, enforced at the service layer (`assertCanContribute` blocks revoked/read-only
+> collaborators). Append-only **review notes**. **Maker-checker report approvals** (`ReportApproval`):
+> the approver must differ from the requester (domain-enforced) AND a distinct checker role is
+> required at the API; emits `APPROVAL_REQUESTED` / `APPROVAL_COMPLETED`. **Month-end close
+> checklist** (`CloseChecklist.canLockMonth` = every mandatory item done) exposes the flag the
+> ledger's month lock gates on. REST under `/api/v1/collaboration/**`.
+>
+> Both services route via the gateway; all state changes are audited. Testcontainers/live-Kafka
+> integration can't run in this environment (documented consistently).
+
 **Scope:** CA/accountant/auditor invite + role-scoped access, evidence room, review comments,
 approval workflow, month-end close checklist. **Services:** ca-collaboration, audit-evidence,
 identity, compliance. **DB:** ca_invites, review_notes, close_checklists, report_approvals,

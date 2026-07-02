@@ -35,6 +35,11 @@ server:
   port: ${PORT:8086}
   shutdown: graceful
 
+peb:
+  outbox:
+    relay:
+      enabled: ${OUTBOX_RELAY_ENABLED:true}   # relay EMPLOYEE_CREATED / SALARY_RUN_CREATED to Kafka
+
 management:
   endpoints:
     web:

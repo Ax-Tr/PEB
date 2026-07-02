@@ -18,5 +18,8 @@ dependencies {
     // Eventing (EMPLOYEE_CREATED)
     implementation("org.springframework.kafka:spring-kafka")
 
+    // Payslip PDF rendering
+    implementation("com.github.librepdf:openpdf:1.3.35")
+
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 }

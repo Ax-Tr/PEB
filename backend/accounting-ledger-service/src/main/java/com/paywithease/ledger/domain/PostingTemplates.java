@@ -51,4 +51,68 @@ public final class PostingTemplates {
         .credit(Accounts.ACCOUNTS_RECEIVABLE, amountMinor, "Settle receivable")
         .build();
   }
+
+  /**
+   * Vendor purchase bill: Purchase/Expense Dr (net); Input GST Dr (ITC); Vendor Payable Cr (gross).
+   * Under reverse charge {@code inputGstMinor} is 0 here (RCM ITC is handled in the GST return).
+   */
+  public static JournalCommand vendorPurchase(
+      LocalDate date,
+      long netMinor,
+      long inputGstMinor,
+      String sourceService,
+      String sourceEventId,
+      String correlationId,
+      String narration) {
+    long gross = netMinor + inputGstMinor;
+    return JournalCommand.builder(date, narration)
+        .source(sourceService, sourceEventId)
+        .correlationId(correlationId)
+        .debit(Accounts.COGS, netMinor, "Purchase")
+        .debit(Accounts.INPUT_GST, inputGstMinor, "Input GST (ITC)")
+        .credit(Accounts.ACCOUNTS_PAYABLE, gross, "Vendor payable")
+        .build();
+  }
+
+  /** Vendor payment: Vendor Payable Dr; Bank/UPI/Cash Cr. */
+  public static JournalCommand vendorPayment(
+      LocalDate date,
+      long amountMinor,
+      String cashOrBankAccountCode,
+      String sourceService,
+      String sourceEventId,
+      String correlationId,
+      String narration) {
+    return JournalCommand.builder(date, narration)
+        .source(sourceService, sourceEventId)
+        .correlationId(correlationId)
+        .debit(Accounts.ACCOUNTS_PAYABLE, amountMinor, "Settle payable")
+        .credit(cashOrBankAccountCode, amountMinor, "Money out")
+        .build();
+  }
+
+  /**
+   * Salary run: Salary Expense Dr (total earnings); Employee Payable Cr (net pay); Statutory
+   * Payable Cr (PF+ESI+PT+other withholdings); TDS Payable Cr (salary TDS). Balances because {@code
+   * totalEarnings = net + statutoryWithheld + tds}.
+   */
+  public static JournalCommand salaryRun(
+      LocalDate date,
+      long totalEarningsMinor,
+      long netPayMinor,
+      long statutoryWithheldMinor,
+      long tdsMinor,
+      String sourceService,
+      String sourceEventId,
+      String correlationId,
+      String narration) {
+    return JournalCommand.builder(date, narration)
+        .source(sourceService, sourceEventId)
+        .correlationId(correlationId)
+        .debit(Accounts.SALARY_EXPENSE, totalEarningsMinor, "Salary & wages")
+        .credit(Accounts.EMPLOYEE_PAYABLE, netPayMinor, "Net salary payable")
+        .credit(Accounts.STATUTORY_PAYABLE, statutoryWithheldMinor, "PF/ESI/PT withheld")
+        .credit(Accounts.TDS_PAYABLE, tdsMinor, "Salary TDS")
+        .build();
+  }
 }
