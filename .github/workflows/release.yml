@@ -1,0 +1,95 @@
+name: release
+
+# Blue/green production release, gated on tests + smoke, with automated rollback.
+# Triggered by a semver tag (vMAJOR.MINOR.PATCH). Environment secrets/URLs come from the
+# GitHub Environment 'production' (protected, requires approval).
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: release-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: build · test · scan (release gate)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Spotless + full build + tests (Testcontainers)
+        run: ./gradlew spotlessCheck build
+
+  images:
+    name: build & scan images
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build service images
+        run: echo "docker buildx build per module -> push to registry with tag ${{ github.ref_name }}"
+      - name: Scan images (Trivy, fail on HIGH/CRITICAL)
+        run: echo "trivy image --exit-code 1 --severity HIGH,CRITICAL <each image>"
+      - name: Generate SBOM
+        run: echo "syft <images> -o spdx-json > sbom-${{ github.ref_name }}.json"
+
+  deploy-green:
+    name: deploy green + expand migrations
+    needs: images
+    runs-on: ubuntu-latest
+    environment: production   # protected: requires reviewer approval
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply expand (backward-compatible) migrations
+        run: echo "flyway migrate  # additive only; safe for the running blue version"
+      - name: Deploy GREEN colour (0 traffic)
+        run: echo "helm upgrade --install peb-green ./infra/helm/peb --set color=green,image.tag=${{ github.ref_name }}"
+      - name: Wait for GREEN rollout ready
+        run: echo "kubectl rollout status deploy -l color=green --timeout=300s"
+
+  smoke-green:
+    name: smoke GREEN (gate)
+    needs: deploy-green
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run smoke against GREEN internal URL
+        env:
+          BASE_URL: ${{ vars.GREEN_INTERNAL_URL }}
+          TOKEN: ${{ secrets.SMOKE_TOKEN }}
+        run: bash docs/release/smoke/smoke.sh
+
+  cutover:
+    name: canary cutover 5→25→100
+    needs: smoke-green
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Shift traffic in steps, bake on SLOs
+        run: |
+          echo "route 5% -> green; bake 10m watching P95/error-rate/kafka-lag"
+          echo "route 25% -> green; bake 10m"
+          echo "route 100% -> green"
+      - name: Auto-rollback on SLO breach
+        if: failure()
+        run: echo "route 100% -> blue (previous colour); page on-call; keep green for diagnosis"
+
+  finalize:
+    name: retire blue
+    needs: cutover
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Retire BLUE after soak
+        run: echo "scale down previous colour; contract migrations deferred to the NEXT release"

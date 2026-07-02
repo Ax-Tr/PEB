@@ -1,0 +1,92 @@
+# PEB Prometheus alert rules — encode the Sprint 17 SLOs and the launch-critical health signals.
+# Loaded via rule_files in prometheus.yml. Metrics come from Spring Boot Actuator + Micrometer
+# (http.server.requests, kafka consumer lag, hikaricp, jvm) exposed at /actuator/prometheus.
+groups:
+  - name: peb-latency-slo
+    rules:
+      # Read (list) P95 > 250ms for 5m — see docs/performance/slos.md.
+      - alert: ReadListP95SloBreached
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{uri!~".*actuator.*", outcome="SUCCESS"}[5m])) by (le, application)
+          ) > 0.25
+        for: 5m
+        labels: { severity: warning, slo: latency }
+        annotations:
+          summary: "P95 latency SLO breached on {{ $labels.application }}"
+          description: "Read P95 > 250ms for 5m. Check DB/query plans, cache hit rate, pod CPU."
+
+      # Analytics dashboards must stay under the 3s AC.
+      - alert: AnalyticsDashboardSlow
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{application="analytics-service"}[5m])) by (le)
+          ) > 3
+        for: 5m
+        labels: { severity: warning, slo: latency }
+        annotations:
+          summary: "Analytics dashboard P95 > 3s"
+          description: "Dashboard SLO (<3s) breached; check read-model freshness and DB load."
+
+  - name: peb-errors
+    rules:
+      - alert: HighServerErrorRate
+        expr: >
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (application)
+          /
+          sum(rate(http_server_requests_seconds_count[5m])) by (application)
+          > 0.01
+        for: 5m
+        labels: { severity: critical, slo: availability }
+        annotations:
+          summary: "5xx error rate > 1% on {{ $labels.application }}"
+          description: "Exceeds the 0.1% error budget materially; page on-call."
+
+  - name: peb-eventing
+    rules:
+      # Kafka consumer lag drives analytics freshness + autoscaling (KEDA).
+      - alert: KafkaConsumerLagHigh
+        expr: sum(kafka_consumer_fetch_manager_records_lag) by (application) > 10000
+        for: 5m
+        labels: { severity: warning, slo: freshness }
+        annotations:
+          summary: "Kafka consumer lag high on {{ $labels.application }}"
+          description: "Read-models falling behind; freshness indicator will show STALE. Scale consumers."
+
+      # Transactional outbox backlog — events written but not yet relayed to Kafka.
+      - alert: OutboxBacklogGrowing
+        expr: sum(peb_outbox_unpublished_total) by (application) > 500
+        for: 10m
+        labels: { severity: warning, slo: reliability }
+        annotations:
+          summary: "Outbox backlog on {{ $labels.application }}"
+          description: "Relay not draining; check the outbox relay and broker connectivity."
+
+  - name: peb-resources
+    rules:
+      - alert: HikariPoolNearExhaustion
+        expr: >
+          hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 5m
+        labels: { severity: warning, slo: capacity }
+        annotations:
+          summary: "DB connection pool > 80% on {{ $labels.application }}"
+          description: "Pool near exhaustion; investigate slow queries or scale."
+
+      - alert: PodCrashLooping
+        expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+        for: 5m
+        labels: { severity: critical, slo: availability }
+        annotations:
+          summary: "Pod crash-looping: {{ $labels.pod }}"
+          description: "More than 3 restarts in 15m; check logs and recent deploy."
+
+  - name: peb-instance
+    rules:
+      - alert: ServiceDown
+        expr: up{job="peb-services"} == 0
+        for: 2m
+        labels: { severity: critical, slo: availability }
+        annotations:
+          summary: "Service target down: {{ $labels.instance }}"
+          description: "Scrape target unreachable for 2m; verify the pod/health."

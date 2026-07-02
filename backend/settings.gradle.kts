@@ -44,6 +44,7 @@ include("compliance-report-service")
 include("analytics-service")            // Sprint 13
 include("audit-evidence-service")       // Sprint 14
 include("ca-collaboration-service")     // Sprint 14
-// include("ai-automation-service")     // Sprint 15
-// include("ocr-document-service")      // Sprint 6 / 15
+include("ai-automation-service")        // Sprint 15
+include("privacy-service")              // Sprint 16 (DPDP data-rights: access/erasure/anonymization/grievance)
+// include("ocr-document-service")      // Sprint 6 / 15 (OCR extraction engine deferred; governance in ai-automation)
 // include("rules-engine-service")      // cross-cutting

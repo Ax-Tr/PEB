@@ -1,0 +1,20 @@
+# Event-driven autoscaling for a projection consumer (analytics-service) on Kafka consumer lag.
+# Scaling on backlog (not CPU) keeps read-model freshness within SLO during event bursts.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: analytics-service-consumer
+spec:
+  scaleTargetRef:
+    name: analytics-service-green
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  cooldownPeriod: 300
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: kafka-bootstrap:9092
+        consumerGroup: analytics-service
+        topic: invoice.events
+        lagThreshold: "1000"        # scale out when lag per replica exceeds this
+        offsetResetPolicy: latest

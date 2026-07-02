@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-green
+  labels:
+    app: api-gateway
+    color: green
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+      color: green
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        color: green
+    spec:
+      containers:
+        - name: api-gateway
+          image: registry.example/peb/api-gateway:RELEASE   # set to the vX.Y.Z tag being released
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1Gi" }
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 15

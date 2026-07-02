@@ -106,6 +106,14 @@ spring:
           uri: ${CA_COLLABORATION_URI:http://localhost:8099}
           predicates:
             - Path=/api/v1/collaboration/**
+        - id: ai-automation-service
+          uri: ${AI_AUTOMATION_URI:http://localhost:8100}
+          predicates:
+            - Path=/api/v1/ai/**
+        - id: privacy-service
+          uri: ${PRIVACY_URI:http://localhost:8101}
+          predicates:
+            - Path=/api/v1/privacy/**
       httpclient:
         connect-timeout: 2000
         response-timeout: 5s

@@ -30,7 +30,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
           + "org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
     })
 @AutoConfigureMockMvc
-@Testcontainers
+// disabledWithoutDocker: this integration test needs a real Postgres via Testcontainers, so it is
+// SKIPPED (not failed) when no Docker environment is present (e.g. local unit-only runs); it still
+// runs in CI where Docker is available.
+@Testcontainers(disabledWithoutDocker = true)
 class PingIntegrationTest {
 
   @Container
