@@ -62,6 +62,7 @@ src/
     privacy/                 #   DPDP data rights: submit + list + lifecycle (verify→plan→complete)
     ai/                      #   AI assistant (ask) + suggestions (accept/reject) + anomaly triage
     more/                    #   More menu (insights / assistant / data rights)
+    masters/                 #   customer + vendor/beneficiary hooks (pickers, not raw IDs)
     offline/                 #   OfflineQueueProvider (post-or-queue, flush on reconnect)
     i18n/                    #   I18nProvider + useI18n (en/hi, switchable in More)
   navigation/                # RootNavigator (auth gate → tabs: Home/Receive/Pay/Books/More) + Books/More stacks
@@ -122,8 +123,16 @@ maker-checker approve/reject; AI shows confidence; erasure retains financial/tax
 **Also done (increment 4):** SVG charts (cashflow), i18n (en/hi, switchable), biometric step-up for
 high-value payouts, and Detox e2e scaffolding (login + receive).
 
-**Next increments:** invoice/payout list endpoints (need backend list APIs), more localised strings,
-push notifications, and running the Detox suite in CI. The old Expo JS prototype under
-`src/screens|data|context|utils` is superseded and excluded from the TS build; delete once fully
-ported.
+**Also done (increment 5):** removed the mock prototype; added backend **invoice-list** and
+**payout-list** endpoints; **customer / vendor+beneficiary pickers** (real masters instead of raw
+IDs) via `EntityPicker`; **Invoices** and **Payouts** list screens; **push-notification** registration
+(expo-notifications, fail-soft on web).
+
+**Also done (increment 6):** notification-service **device-token registration** — full loop closed:
+`POST/DELETE/GET /api/v1/notifications/devices` (idempotent per token, soft-revoke) + service/tests;
+the app now persists its push token to the backend on the dashboard (`syncPushRegistration`) and
+unregisters it on logout while the session is still valid.
+
+**Next increments:** more localised strings, in-app notification centre, and running the Detox suite
+in CI.
 ```

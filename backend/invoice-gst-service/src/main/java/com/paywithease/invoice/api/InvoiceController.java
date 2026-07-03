@@ -69,6 +69,12 @@ public class InvoiceController {
     return toResponse(invoice);
   }
 
+  @GetMapping
+  @Operation(summary = "List invoices for the current tenant, newest first")
+  public List<InvoiceDtos.InvoiceResponse> list() {
+    return service.list().stream().map(this::toResponse).toList();
+  }
+
   @GetMapping("/{id}")
   @Operation(summary = "Get an invoice with items and tax summary")
   public InvoiceDtos.InvoiceResponse get(@PathVariable String id) {

@@ -74,6 +74,37 @@ public class AnalyticsController {
         .toList();
   }
 
+  @GetMapping("/commitments-summary")
+  @Operation(summary = "Commitment operational summary from analytics read-model")
+  public AnalyticsDtos.CommitmentSummaryResponse commitmentsSummary(
+      @RequestParam(required = false) String asOf) {
+    return AnalyticsDtos.CommitmentSummaryResponse.from(
+        service.commitmentsSummary(parseAsOf(asOf)));
+  }
+
+  @GetMapping("/collection-efficiency")
+  @Operation(summary = "Promise-to-collection conversion across tracked commitments")
+  public AnalyticsDtos.CollectionEfficiencyResponse collectionEfficiency() {
+    return AnalyticsDtos.CollectionEfficiencyResponse.from(service.collectionEfficiency());
+  }
+
+  @GetMapping("/broken-promises")
+  @Operation(summary = "Broken promises requiring owner follow-up")
+  public List<AnalyticsDtos.CommitmentItemResponse> brokenPromises() {
+    return service.brokenPromises().stream()
+        .map(AnalyticsDtos.CommitmentItemResponse::from)
+        .toList();
+  }
+
+  @GetMapping("/upcoming-obligations")
+  @Operation(summary = "Upcoming commitments and obligations due soon")
+  public List<AnalyticsDtos.CommitmentItemResponse> upcomingObligations(
+      @RequestParam(required = false) String from, @RequestParam(defaultValue = "7") int days) {
+    return service.upcomingObligations(parseAsOf(from), Math.min(Math.max(days, 0), 90)).stream()
+        .map(AnalyticsDtos.CommitmentItemResponse::from)
+        .toList();
+  }
+
   @GetMapping("/freshness")
   @Operation(summary = "Read-model freshness per stream (analytics is eventually consistent)")
   public List<AnalyticsDtos.FreshnessResponse> freshness() {

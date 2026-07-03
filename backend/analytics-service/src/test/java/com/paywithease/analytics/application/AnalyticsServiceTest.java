@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.paywithease.analytics.domain.AgingCalculator;
 import com.paywithease.analytics.domain.Freshness;
 import com.paywithease.analytics.infrastructure.FactCashMovementRepository;
+import com.paywithease.analytics.infrastructure.FactCommitment;
+import com.paywithease.analytics.infrastructure.FactCommitmentRepository;
 import com.paywithease.analytics.infrastructure.FactExpenseRepository;
 import com.paywithease.analytics.infrastructure.FactInvoice;
 import com.paywithease.analytics.infrastructure.FactInvoiceRepository;
@@ -42,6 +44,7 @@ class AnalyticsServiceTest {
   @Mock FactExpenseRepository expenses;
   @Mock FactCashMovementRepository cash;
   @Mock FactProductSaleRepository products;
+  @Mock FactCommitmentRepository commitments;
   @Mock StreamWatermarkRepository watermarks;
 
   private AnalyticsService service;
@@ -50,12 +53,14 @@ class AnalyticsServiceTest {
   @BeforeEach
   void setUp() {
     service =
-        new AnalyticsService(invoices, purchases, expenses, cash, products, watermarks, clock, 300);
+        new AnalyticsService(
+            invoices, purchases, expenses, cash, products, commitments, watermarks, clock, 300);
     TenantContext.set(new TenantContext.Principal("tenant1", "tenant1", "actor1", "corr1"));
     when(invoices.save(any())).thenAnswer(returnsFirstArg());
     when(purchases.save(any())).thenAnswer(returnsFirstArg());
     when(expenses.save(any())).thenAnswer(returnsFirstArg());
     when(cash.save(any())).thenAnswer(returnsFirstArg());
+    when(commitments.save(any())).thenAnswer(returnsFirstArg());
     when(watermarks.save(any())).thenAnswer(returnsFirstArg());
   }
 
@@ -152,6 +157,52 @@ class AnalyticsServiceTest {
   }
 
   @Test
+  void ingestCommitmentCreatesOrUpdatesProjection() {
+    service.ingestCommitment(
+        "c1",
+        "CUSTOMER",
+        "cust1",
+        "Raj",
+        "VOICE",
+        LocalDate.of(2026, 7, 3),
+        500_000,
+        0,
+        500_000,
+        "PROMISED");
+
+    verify(commitments).save(any(FactCommitment.class));
+  }
+
+  @Test
+  void commitmentSummaryAggregatesDueAndBroken() {
+    FactCommitment due = commitment("c1", LocalDate.of(2026, 7, 1), 100_000, "PROMISED");
+    FactCommitment overdue = commitment("c2", LocalDate.of(2026, 6, 30), 200_000, "BROKEN");
+    when(commitments.countOpen("tenant1")).thenReturn(2L);
+    when(commitments.countByTenantIdAndStatus("tenant1", "BROKEN")).thenReturn(1L);
+    when(commitments.sumOpenOutstandingMinor("tenant1")).thenReturn(300_000L);
+    when(commitments.dueToday("tenant1", LocalDate.of(2026, 7, 1))).thenReturn(List.of(due));
+    when(commitments.overdue("tenant1", LocalDate.of(2026, 7, 1))).thenReturn(List.of(overdue));
+    when(commitments.dueBetween("tenant1", LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 8)))
+        .thenReturn(List.of(due));
+
+    var summary = service.commitmentsSummary(LocalDate.of(2026, 7, 1));
+
+    assertThat(summary.dueTodayMinor()).isEqualTo(100_000);
+    assertThat(summary.overdueMinor()).isEqualTo(200_000);
+    assertThat(summary.brokenCount()).isEqualTo(1);
+  }
+
+  @Test
+  void collectionEfficiencyComputesConversionPct() {
+    when(commitments.sumPromisedMinor("tenant1")).thenReturn(1_000_000L);
+    when(commitments.sumPaidMinor("tenant1")).thenReturn(650_000L);
+
+    var efficiency = service.collectionEfficiency();
+
+    assertThat(efficiency.conversionPct()).isEqualByComparingTo("65.00");
+  }
+
+  @Test
   void advanceWatermarkCreatesThenUpdates() {
     when(watermarks.findById("tenant1|invoice.events")).thenReturn(Optional.empty());
     service.advanceWatermark("invoice.events", "e1");
@@ -181,5 +232,22 @@ class AnalyticsServiceTest {
         return amount;
       }
     };
+  }
+
+  private static FactCommitment commitment(
+      String id, LocalDate dueDate, long outstandingMinor, String status) {
+    return new FactCommitment(
+        id,
+        "tenant1",
+        "CUSTOMER",
+        "cust1",
+        "Raj",
+        "MANUAL",
+        dueDate,
+        outstandingMinor,
+        0,
+        outstandingMinor,
+        status,
+        Instant.parse("2026-07-01T00:00:00Z"));
   }
 }

@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http } from "../../shared/api";
 import { API_PREFIX } from "../../shared/constants";
-import type { AiSuggestion, AnomalyAlert, AssistantAnswer } from "../../shared/types";
+import type { AiSuggestion, AnomalyAlert, AssistantAnswer, VoiceDraft } from "../../shared/types";
 
 const SUGGESTIONS_KEY = ["ai", "suggestions"];
 const ANOMALIES_KEY = ["ai", "anomalies"];
+const VOICE_DRAFTS_KEY = ["ai", "voice-drafts"];
 
 export function useAiSuggestions(status = "PROPOSED") {
   return useQuery({
@@ -39,5 +40,36 @@ export function useDecideAnomaly(action: "acknowledge" | "dismiss") {
 export function useAskAssistant() {
   return useMutation<AssistantAnswer, unknown, string>({
     mutationFn: (question) => http.post<AssistantAnswer>(`${API_PREFIX}/ai/assistant/ask`, { question }),
+  });
+}
+
+export function useVoiceDrafts(status = "NEEDS_REVIEW") {
+  return useQuery({
+    queryKey: [...VOICE_DRAFTS_KEY, status],
+    queryFn: () => http.get<VoiceDraft[]>(`${API_PREFIX}/ai/voice/drafts?status=${status}`),
+  });
+}
+
+export function useParseVoice() {
+  const qc = useQueryClient();
+  return useMutation<VoiceDraft, unknown, string>({
+    mutationFn: (transcript) => http.post<VoiceDraft>(`${API_PREFIX}/ai/voice/parse`, { transcript }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: VOICE_DRAFTS_KEY }),
+  });
+}
+
+export function useApproveVoiceDraft() {
+  const qc = useQueryClient();
+  return useMutation<VoiceDraft, unknown, { id: string; fields: Record<string, unknown> }>({
+    mutationFn: ({ id, fields }) => http.post<VoiceDraft>(`${API_PREFIX}/ai/voice/drafts/${id}/approve`, { fields }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: VOICE_DRAFTS_KEY }),
+  });
+}
+
+export function useRejectVoiceDraft() {
+  const qc = useQueryClient();
+  return useMutation<VoiceDraft, unknown, { id: string; reason?: string }>({
+    mutationFn: ({ id, reason }) => http.post<VoiceDraft>(`${API_PREFIX}/ai/voice/drafts/${id}/reject`, { reason }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: VOICE_DRAFTS_KEY }),
   });
 }

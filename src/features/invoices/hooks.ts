@@ -1,8 +1,15 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { http } from "../../shared/api";
 import { API_PREFIX } from "../../shared/constants";
 import { cryptoRandomId } from "../../shared/http";
 import type { CreateInvoiceRequest, InvoiceResponse } from "../../shared/types";
+
+export function useInvoices() {
+  return useQuery({
+    queryKey: ["invoices"],
+    queryFn: () => http.get<InvoiceResponse[]>(`${API_PREFIX}/invoices`),
+  });
+}
 
 export function useCreateInvoice() {
   return useMutation<InvoiceResponse, unknown, CreateInvoiceRequest>({

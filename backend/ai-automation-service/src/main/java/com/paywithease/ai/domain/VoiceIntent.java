@@ -1,0 +1,11 @@
+package com.paywithease.ai.domain;
+
+public enum VoiceIntent {
+  CREATE_COMMITMENT,
+  CREATE_INSTALLMENT,
+  CREATE_REMINDER,
+  CREATE_EXPENSE,
+  CREATE_PAYOUT_REMINDER,
+  ADD_CUSTOMER_NOTE,
+  UNKNOWN
+}

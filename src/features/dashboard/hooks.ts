@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { http } from "../../shared/api";
 import { API_PREFIX } from "../../shared/config";
-import type { Aging, Cashflow, Pnl, StreamFreshness } from "../../shared/types";
+import type {
+  Aging,
+  AnalyticsCommitmentItem,
+  Cashflow,
+  CollectionEfficiency,
+  CommitmentSummary,
+  Pnl,
+  StreamFreshness,
+} from "../../shared/types";
 
 /** Current period in Asia/Kolkata terms (device clock); the backend also reasons in IST. */
 export function currentPeriod(): { year: number; month: number } {
@@ -35,5 +43,34 @@ export function useFreshness() {
   return useQuery({
     queryKey: ["analytics", "freshness"],
     queryFn: () => http.get<StreamFreshness[]>(`${API_PREFIX}/analytics/freshness`),
+  });
+}
+
+export function useCommitmentSummary() {
+  return useQuery({
+    queryKey: ["analytics", "commitments-summary"],
+    queryFn: () => http.get<CommitmentSummary>(`${API_PREFIX}/analytics/commitments-summary`),
+  });
+}
+
+export function useCollectionEfficiency() {
+  return useQuery({
+    queryKey: ["analytics", "collection-efficiency"],
+    queryFn: () => http.get<CollectionEfficiency>(`${API_PREFIX}/analytics/collection-efficiency`),
+  });
+}
+
+export function useBrokenPromises() {
+  return useQuery({
+    queryKey: ["analytics", "broken-promises"],
+    queryFn: () => http.get<AnalyticsCommitmentItem[]>(`${API_PREFIX}/analytics/broken-promises`),
+  });
+}
+
+export function useUpcomingObligations(days = 7) {
+  return useQuery({
+    queryKey: ["analytics", "upcoming-obligations", days],
+    queryFn: () =>
+      http.get<AnalyticsCommitmentItem[]>(`${API_PREFIX}/analytics/upcoming-obligations?days=${days}`),
   });
 }

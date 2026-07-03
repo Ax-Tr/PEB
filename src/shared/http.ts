@@ -55,6 +55,10 @@ export class HttpClient {
     return this.request<T>("POST", path, body, opts);
   }
 
+  del<T>(path: string, opts?: HttpOptions): Promise<T> {
+    return this.request<T>("DELETE", path, undefined, opts);
+  }
+
   private async request<T>(
     method: string,
     path: string,

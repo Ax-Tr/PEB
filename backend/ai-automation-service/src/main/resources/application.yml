@@ -49,6 +49,11 @@ peb:
     # outputs below the review threshold always require a human decision.
     auto-apply-threshold: ${AI_AUTO_APPLY_THRESHOLD:0.90}
     review-threshold: ${AI_REVIEW_THRESHOLD:0.50}
+    commitment-uri: ${COMMITMENT_URI:http://localhost:8102}
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-3-flash-preview}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
 
 management:
   endpoints:

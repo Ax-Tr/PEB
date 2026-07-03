@@ -7,6 +7,8 @@ import com.paywithease.analytics.domain.ProfitCalculator;
 import com.paywithease.analytics.domain.ProfitabilityRanker;
 import com.paywithease.analytics.infrastructure.FactCashMovement;
 import com.paywithease.analytics.infrastructure.FactCashMovementRepository;
+import com.paywithease.analytics.infrastructure.FactCommitment;
+import com.paywithease.analytics.infrastructure.FactCommitmentRepository;
 import com.paywithease.analytics.infrastructure.FactExpense;
 import com.paywithease.analytics.infrastructure.FactExpenseRepository;
 import com.paywithease.analytics.infrastructure.FactInvoice;
@@ -17,6 +19,7 @@ import com.paywithease.analytics.infrastructure.FactPurchaseRepository;
 import com.paywithease.analytics.infrastructure.StreamWatermark;
 import com.paywithease.analytics.infrastructure.StreamWatermarkRepository;
 import com.paywithease.common.tenant.TenantContext;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -41,6 +44,7 @@ public class AnalyticsService {
   private final FactExpenseRepository expenses;
   private final FactCashMovementRepository cash;
   private final FactProductSaleRepository products;
+  private final FactCommitmentRepository commitments;
   private final StreamWatermarkRepository watermarks;
   private final Clock clock;
   private final Duration staleThreshold;
@@ -51,6 +55,7 @@ public class AnalyticsService {
       FactExpenseRepository expenses,
       FactCashMovementRepository cash,
       FactProductSaleRepository products,
+      FactCommitmentRepository commitments,
       StreamWatermarkRepository watermarks,
       Clock clock,
       @Value("${peb.analytics.stale-threshold-seconds:300}") long staleThresholdSeconds) {
@@ -59,6 +64,7 @@ public class AnalyticsService {
     this.expenses = expenses;
     this.cash = cash;
     this.products = products;
+    this.commitments = commitments;
     this.watermarks = watermarks;
     this.clock = clock;
     this.staleThreshold = Duration.ofSeconds(staleThresholdSeconds);
@@ -156,6 +162,52 @@ public class AnalyticsService {
             clock.instant()));
   }
 
+  @Transactional
+  public void ingestCommitment(
+      String commitmentId,
+      String counterpartyType,
+      String counterpartyId,
+      String counterpartyName,
+      String sourceType,
+      LocalDate dueDate,
+      long amountMinor,
+      long paidMinor,
+      long outstandingMinor,
+      String status) {
+    String tenantId = TenantContext.requireTenantId();
+    FactCommitment existing =
+        commitments.findByTenantIdAndCommitmentId(tenantId, commitmentId).orElse(null);
+    if (existing == null) {
+      commitments.save(
+          new FactCommitment(
+              commitmentId,
+              tenantId,
+              counterpartyType,
+              counterpartyId,
+              counterpartyName,
+              sourceType,
+              dueDate,
+              amountMinor,
+              paidMinor,
+              outstandingMinor,
+              status,
+              clock.instant()));
+    } else {
+      existing.update(
+          counterpartyType,
+          counterpartyId,
+          counterpartyName,
+          sourceType,
+          dueDate,
+          amountMinor,
+          paidMinor,
+          outstandingMinor,
+          status,
+          clock.instant());
+      commitments.save(existing);
+    }
+  }
+
   /** Advance the freshness watermark for a stream after an event has been projected. */
   @Transactional
   public void advanceWatermark(String stream, String eventId) {
@@ -248,6 +300,88 @@ public class AnalyticsService {
     return ProfitabilityRanker.rank(items);
   }
 
+  public record CommitmentSummary(
+      long openCount,
+      long dueTodayCount,
+      long overdueCount,
+      long brokenCount,
+      long openOutstandingMinor,
+      long dueTodayMinor,
+      long overdueMinor,
+      long dueSoonMinor) {}
+
+  @Transactional(readOnly = true)
+  public CommitmentSummary commitmentsSummary(LocalDate today) {
+    String tenantId = TenantContext.requireTenantId();
+    List<FactCommitment> dueToday = commitments.dueToday(tenantId, today);
+    List<FactCommitment> overdue = commitments.overdue(tenantId, today);
+    List<FactCommitment> dueSoon = commitments.dueBetween(tenantId, today, today.plusDays(7));
+    return new CommitmentSummary(
+        commitments.countOpen(tenantId),
+        dueToday.size(),
+        overdue.size(),
+        commitments.countByTenantIdAndStatus(tenantId, "BROKEN"),
+        commitments.sumOpenOutstandingMinor(tenantId),
+        sumOutstanding(dueToday),
+        sumOutstanding(overdue),
+        sumOutstanding(dueSoon));
+  }
+
+  public record CollectionEfficiency(
+      long promisedMinor, long collectedMinor, BigDecimal conversionPct) {}
+
+  @Transactional(readOnly = true)
+  public CollectionEfficiency collectionEfficiency() {
+    String tenantId = TenantContext.requireTenantId();
+    long promised = commitments.sumPromisedMinor(tenantId);
+    long collected = commitments.sumPaidMinor(tenantId);
+    BigDecimal pct =
+        promised == 0
+            ? BigDecimal.ZERO
+            : BigDecimal.valueOf(collected)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(promised), 2, java.math.RoundingMode.HALF_UP);
+    return new CollectionEfficiency(promised, collected, pct);
+  }
+
+  public record CommitmentItem(
+      String commitmentId,
+      String counterpartyType,
+      String counterpartyId,
+      String counterpartyName,
+      LocalDate dueDate,
+      long outstandingMinor,
+      String status) {
+    static CommitmentItem from(FactCommitment f) {
+      return new CommitmentItem(
+          f.getCommitmentId(),
+          f.getCounterpartyType(),
+          f.getCounterpartyId(),
+          f.getCounterpartyName(),
+          f.getDueDate(),
+          f.getOutstandingMinor(),
+          f.getStatus());
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public List<CommitmentItem> brokenPromises() {
+    return commitments
+        .findTop20ByTenantIdAndStatusOrderByDueDateAsc(TenantContext.requireTenantId(), "BROKEN")
+        .stream()
+        .map(CommitmentItem::from)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<CommitmentItem> upcomingObligations(LocalDate from, int days) {
+    return commitments
+        .dueBetween(TenantContext.requireTenantId(), from, from.plusDays(Math.max(0, days)))
+        .stream()
+        .map(CommitmentItem::from)
+        .toList();
+  }
+
   public record StreamFreshness(String stream, Freshness.Status status) {}
 
   @Transactional(readOnly = true)
@@ -260,5 +394,9 @@ public class AnalyticsService {
                     wm.getStream(),
                     Freshness.evaluate(wm.getLastProcessedAt(), clock.instant(), staleThreshold)))
         .toList();
+  }
+
+  private static long sumOutstanding(List<FactCommitment> rows) {
+    return rows.stream().mapToLong(FactCommitment::getOutstandingMinor).sum();
   }
 }

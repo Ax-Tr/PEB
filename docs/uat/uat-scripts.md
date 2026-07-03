@@ -73,6 +73,28 @@ Legend: **AC** = acceptance check that must pass for sign-off.
 - AC: financial/tax/KYC categories return `RETAIN_LEGAL_HOLD` (not deleted); `fullErasurePossible=false`
   with an honest summary; `DATA_ERASURE_REQUESTED` emitted; SLA due date tracked.
 
+## PDF Gap Workflows (Sprints 20-24)
+
+1. **Create and manage a payment commitment** -> `POST /api/v1/commitments`, then
+   `/record-payment`, `/reschedule`, `/cancel`.
+   - AC: partial payment updates outstanding amount; reschedule preserves event history; overdue
+     commitments appear in analytics after `COMMITMENT_*` events project.
+2. **Create an installment and schedule reminders** -> `POST /api/v1/installments`, then
+   `POST /api/v1/reminders/schedule`.
+   - AC: EMI rounding is exact; reminder rows carry source references and delivery status.
+3. **OCR vendor bank capture** -> `POST /api/v1/documents/upload-url`, `POST /api/v1/ocr/jobs`,
+   review result, then save to `/api/v1/vendors/{id}/bank-accounts`.
+   - AC: OCR output is never auto-applied; saved account is `PENDING_REVIEW`; raw OCR text is
+     encrypted/protected and absent from logs.
+4. **Voice commitment draft** -> `POST /api/v1/ai/voice/parse`, review/edit, then
+   `POST /api/v1/ai/voice/drafts/{id}/approve`.
+   - AC: "Raj promised to pay 5000 on Friday" becomes a commitment draft; incomplete drafts require
+     edits; suspicious instructions are flagged and cannot be approved.
+5. **Gap analytics dashboard** -> `GET /api/v1/analytics/commitments-summary`,
+   `/collection-efficiency`, `/broken-promises`, `/upcoming-obligations`, `/freshness`.
+   - AC: owner can answer who promised to pay, who missed, how much is due today, what is coming due,
+     and whether analytics streams are fresh/stale without dashboard queries to OLTP services.
+
 ## Sign-off
 
 A persona session passes only when all its ACs hold with **no critical bug**. Record sign-off from a

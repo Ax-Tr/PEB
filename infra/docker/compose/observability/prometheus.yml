@@ -31,6 +31,8 @@ scrape_configs:
           - 'host.docker.internal:8090'   # purchase-expense-service
           - 'host.docker.internal:8091'   # payout-service
           - 'host.docker.internal:8092'   # installment-service
+          - 'host.docker.internal:8102'   # commitment-service
+          - 'host.docker.internal:8103'   # ocr-document-service
           - 'host.docker.internal:8093'   # notification-service
           - 'host.docker.internal:8094'   # transaction-ingestion-service
           - 'host.docker.internal:8095'   # reconciliation-service

@@ -22,6 +22,7 @@
 | 05 | [specs/idempotency-outbox-saga.md](./specs/idempotency-outbox-saga.md) | Idempotency keys, transactional outbox, saga orchestration |
 | 06 | [specs/threat-model.md](./specs/threat-model.md) | STRIDE threat model + control mapping |
 | 07 | [specs/data-dictionary-conventions.md](./specs/data-dictionary-conventions.md) | ID/money/tenant/audit column conventions, encryption tiers |
+| 08 | [pdf-gap-closure-sprint-plan.md](./pdf-gap-closure-sprint-plan.md) | Forward sprint plan for PDF comparison gaps: commitments, installment/reminder UX, real OCR bank capture, voice input, and gap analytics |
 
 ## Source of truth
 

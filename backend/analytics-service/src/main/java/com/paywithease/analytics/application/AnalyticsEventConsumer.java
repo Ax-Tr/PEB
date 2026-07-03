@@ -46,7 +46,13 @@ public class AnalyticsEventConsumer {
   }
 
   @KafkaListener(
-      topics = {"invoice.events", "payment.events", "purchase.events", "payout.events"},
+      topics = {
+        "invoice.events",
+        "payment.events",
+        "purchase.events",
+        "payout.events",
+        "commitment.events"
+      },
       groupId = "analytics-service")
   public void onEvent(String message) {
     try {
@@ -143,6 +149,31 @@ public class AnalyticsEventConsumer {
         service.ingestCashMovement(payoutId, "OUTFLOW", "PAYOUT", partyId, amountMinor, istDate);
         service.advanceWatermark("payout.events", eventId);
       }
+      case "COMMITMENT_CREATED",
+          "COMMITMENT_PARTIALLY_PAID",
+          "COMMITMENT_PAID",
+          "COMMITMENT_RESCHEDULED",
+          "COMMITMENT_BROKEN",
+          "COMMITMENT_CANCELLED" -> {
+        String commitmentId = text(payload, "commitmentId");
+        String dueDate = text(payload, "dueDate");
+        if (commitmentId == null || dueDate == null) {
+          log.debug("Skipping {} with no commitmentId or dueDate", eventType);
+          return;
+        }
+        service.ingestCommitment(
+            commitmentId,
+            blankTo(payload.path("counterpartyType").asText(null), "OTHER"),
+            text(payload, "counterpartyId"),
+            text(payload, "counterpartyName"),
+            text(payload, "sourceType"),
+            LocalDate.parse(dueDate),
+            payload.path("amountMinor").asLong(0),
+            payload.path("paidMinor").asLong(0),
+            payload.path("outstandingMinor").asLong(0),
+            blankTo(payload.path("status").asText(null), "PROMISED"));
+        service.advanceWatermark("commitment.events", eventId);
+      }
       default -> log.debug("Ignoring unhandled event type {}", eventType);
     }
   }
@@ -150,5 +181,9 @@ public class AnalyticsEventConsumer {
   /** Null-safe string read: returns null unless the field is present and non-null. */
   private static String text(JsonNode payload, String field) {
     return payload.hasNonNull(field) ? payload.path(field).asText() : null;
+  }
+
+  private static String blankTo(String value, String fallback) {
+    return value == null || value.isBlank() ? fallback : value;
   }
 }

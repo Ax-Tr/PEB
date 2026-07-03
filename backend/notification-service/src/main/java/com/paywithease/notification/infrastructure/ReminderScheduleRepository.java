@@ -16,4 +16,6 @@ public interface ReminderScheduleRepository extends JpaRepository<ReminderSchedu
       String tenantId, String sourceRef, Integer emiNumber, int offsetDays);
 
   List<ReminderSchedule> findByTenantIdAndSourceRefOrderBySendOn(String tenantId, String sourceRef);
+
+  List<ReminderSchedule> findByTenantIdOrderBySendOnDesc(String tenantId);
 }

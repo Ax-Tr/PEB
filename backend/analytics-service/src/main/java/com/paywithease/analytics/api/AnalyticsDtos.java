@@ -128,6 +128,63 @@ public final class AnalyticsDtos {
   }
 
   // -----------------------------------------------------------------------------------------------
+  // Sprint 24 commitment analytics
+  // -----------------------------------------------------------------------------------------------
+
+  public record CommitmentSummaryResponse(
+      long openCount,
+      long dueTodayCount,
+      long overdueCount,
+      long brokenCount,
+      long openOutstandingMinor,
+      long dueTodayMinor,
+      long overdueMinor,
+      long dueSoonMinor) {
+
+    static CommitmentSummaryResponse from(AnalyticsService.CommitmentSummary s) {
+      return new CommitmentSummaryResponse(
+          s.openCount(),
+          s.dueTodayCount(),
+          s.overdueCount(),
+          s.brokenCount(),
+          s.openOutstandingMinor(),
+          s.dueTodayMinor(),
+          s.overdueMinor(),
+          s.dueSoonMinor());
+    }
+  }
+
+  public record CollectionEfficiencyResponse(
+      long promisedMinor, long collectedMinor, BigDecimal conversionPct) {
+
+    static CollectionEfficiencyResponse from(AnalyticsService.CollectionEfficiency e) {
+      return new CollectionEfficiencyResponse(
+          e.promisedMinor(), e.collectedMinor(), e.conversionPct());
+    }
+  }
+
+  public record CommitmentItemResponse(
+      String commitmentId,
+      String counterpartyType,
+      String counterpartyId,
+      String counterpartyName,
+      java.time.LocalDate dueDate,
+      long outstandingMinor,
+      String status) {
+
+    static CommitmentItemResponse from(AnalyticsService.CommitmentItem item) {
+      return new CommitmentItemResponse(
+          item.commitmentId(),
+          item.counterpartyType(),
+          item.counterpartyId(),
+          item.counterpartyName(),
+          item.dueDate(),
+          item.outstandingMinor(),
+          item.status());
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
   // Freshness (read-model staleness indicator)
   // -----------------------------------------------------------------------------------------------
 

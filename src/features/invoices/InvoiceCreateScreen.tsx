@@ -2,18 +2,25 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
+import { EntityPicker } from "../../components/EntityPicker";
 import { Money } from "../../components/Money";
 import { Screen } from "../../components/Screen";
 import { TextField } from "../../components/TextField";
 import { ApiError } from "../../shared/http";
 import { parseRupeesToMinor } from "../../shared/money";
-import type { InvoiceResponse } from "../../shared/types";
+import type { Customer, InvoiceResponse } from "../../shared/types";
 import { theme } from "../../theme/theme";
+import { useCreateCustomer, useCustomers } from "../masters/hooks";
 import { useCreateInvoice, useSendInvoice } from "./hooks";
 
 /** Create a GST invoice (single line for now) — tax is computed server-side and shown on the result. */
 export function InvoiceCreateScreen(): React.ReactElement {
-  const [customerName, setCustomerName] = useState("");
+  const customers = useCustomers();
+  const createCustomer = useCreateCustomer();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [addingCustomer, setAddingCustomer] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newMobile, setNewMobile] = useState("");
   const [supplyType, setSupplyType] = useState<"B2B" | "B2C">("B2C");
   const [description, setDescription] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
@@ -43,7 +50,8 @@ export function InvoiceCreateScreen(): React.ReactElement {
     create.mutate({
       documentType: "INVOICE",
       supplyType,
-      customerName: customerName.trim() || undefined,
+      customerId: customer?.id,
+      customerName: customer?.name,
       reverseCharge: false,
       lines: [
         {
@@ -62,7 +70,51 @@ export function InvoiceCreateScreen(): React.ReactElement {
       <Text style={styles.title}>New invoice</Text>
       {!invoice ? (
         <Card>
-          <TextField label="Customer name" value={customerName} onChangeText={setCustomerName} placeholder="e.g. Acme Traders" autoFocus />
+          {addingCustomer ? (
+            <>
+              <TextField label="New customer name" value={newName} onChangeText={setNewName} placeholder="e.g. Acme Traders" autoFocus />
+              <TextField label="Mobile" value={newMobile} onChangeText={setNewMobile} placeholder="10-digit mobile" keyboardType="phone-pad" maxLength={13} />
+              {createCustomer.isError ? (
+                <Text style={styles.error}>{createCustomer.error instanceof ApiError ? createCustomer.error.message : "Could not add customer."}</Text>
+              ) : null}
+              <View style={styles.toggleRow}>
+                <Button
+                  title="Save customer"
+                  onPress={() =>
+                    createCustomer.mutate(
+                      { name: newName.trim(), mobile: newMobile.trim() },
+                      {
+                        onSuccess: (c) => {
+                          setCustomer(c);
+                          setAddingCustomer(false);
+                          setNewName("");
+                          setNewMobile("");
+                        },
+                      },
+                    )
+                  }
+                  loading={createCustomer.isPending}
+                  disabled={newName.trim().length === 0 || newMobile.trim().length < 10}
+                />
+                <Button title="Cancel" variant="secondary" onPress={() => setAddingCustomer(false)} />
+              </View>
+            </>
+          ) : (
+            <>
+              <EntityPicker<Customer>
+                testID="invoice-customer"
+                label="Customer"
+                items={customers.data}
+                loading={customers.isLoading}
+                selectedId={customer?.id ?? null}
+                getId={(c) => c.id}
+                getLabel={(c) => c.name}
+                onSelect={setCustomer}
+                emptyText="No customers yet — add one."
+              />
+              <Button title="＋ New customer" variant="secondary" onPress={() => setAddingCustomer(true)} />
+            </>
+          )}
           <View style={styles.toggleRow}>
             <Button title="B2C" variant={supplyType === "B2C" ? "primary" : "secondary"} onPress={() => setSupplyType("B2C")} />
             <Button title="B2B" variant={supplyType === "B2B" ? "primary" : "secondary"} onPress={() => setSupplyType("B2B")} />

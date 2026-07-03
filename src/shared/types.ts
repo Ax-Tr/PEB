@@ -66,6 +66,30 @@ export interface StreamFreshness {
   lagSeconds: number;
   lastProcessedAt: string | null;
 }
+export interface CommitmentSummary {
+  openCount: number;
+  dueTodayCount: number;
+  overdueCount: number;
+  brokenCount: number;
+  openOutstandingMinor: Minor;
+  dueTodayMinor: Minor;
+  overdueMinor: Minor;
+  dueSoonMinor: Minor;
+}
+export interface CollectionEfficiency {
+  promisedMinor: Minor;
+  collectedMinor: Minor;
+  conversionPct: string;
+}
+export interface AnalyticsCommitmentItem {
+  commitmentId: string;
+  counterpartyType: string;
+  counterpartyId?: string | null;
+  counterpartyName?: string | null;
+  dueDate: string;
+  outstandingMinor: Minor;
+  status: string;
+}
 export interface ProductProfitability {
   productId: string;
   productName: string;
@@ -127,6 +151,107 @@ export interface AssistantAnswer {
   confidence: number;
   modelAvailable: boolean;
   injectionDetected: boolean;
+}
+export interface VoiceDraft {
+  id: string;
+  transcript: string;
+  sanitizedTranscript: string;
+  intent: string;
+  status: string;
+  fields: Record<string, unknown>;
+  missingFields: string[];
+  confidence: string;
+  suspicious: boolean;
+  materializedRef?: string | null;
+  rejectionReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+}
+
+// --- Masters (customer-service / vendor-service) ---
+export interface Customer {
+  id: string;
+  name: string;
+  mobile?: string | null;
+}
+export interface CreateCustomerRequest {
+  name: string;
+  mobile: string;
+}
+export interface Vendor {
+  id: string;
+  name: string;
+  mobile?: string | null;
+}
+/** vendor-service wraps its list as { vendors: [...] } and bank accounts as { bankAccounts: [...] }. */
+export interface VendorList {
+  vendors: Vendor[];
+}
+export interface BankAccount {
+  id: string;
+  vendorId: string;
+  accountNumberMasked: string;
+  ifsc?: string | null;
+  upi?: string | null;
+  bankName?: string | null;
+  holderName?: string | null;
+  status?: string | null;
+  source?: string | null;
+  reviewedBy?: string | null;
+}
+export interface BankAccountList {
+  bankAccounts: BankAccount[];
+}
+export interface AddVendorBankAccountRequest {
+  accountNumber: string;
+  ifsc: string;
+  upi?: string;
+  bankName: string;
+  holderName: string;
+  source: "MANUAL" | "OCR";
+}
+
+// --- OCR document capture (ocr-document-service) ---
+export interface OcrDocument {
+  id: string;
+  storageKey: string;
+  originalFilename: string;
+  mimeType: string;
+  checksum?: string | null;
+  sizeBytes: number;
+  createdAt: string;
+}
+export interface OcrUploadReservation {
+  documentId: string;
+  storageKey: string;
+  uploadUrl: string;
+  expiresAt: string;
+  document: OcrDocument;
+}
+export interface OcrExtractedField {
+  value: string;
+  source: string;
+  confidence: number;
+}
+export interface OcrJob {
+  id: string;
+  documentId: string;
+  documentType: string;
+  status: string;
+  fields: Record<string, OcrExtractedField>;
+  confidence: string;
+  failureReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+}
+export interface StartOcrJobRequest {
+  documentId: string;
+  documentType: string;
+  rawText?: string;
 }
 
 // --- Payment collection (payment-collection-service) ---
@@ -195,6 +320,129 @@ export interface PayoutResponse {
   riskLevel: string;
   provider?: string | null;
   providerRef?: string | null;
+}
+
+// --- Commitments (commitment-service) ---
+export interface Commitment {
+  id: string;
+  counterpartyType: "CUSTOMER" | "VENDOR" | "EMPLOYEE" | "OTHER";
+  counterpartyId?: string | null;
+  counterpartyName?: string | null;
+  sourceType: string;
+  sourceRef?: string | null;
+  description?: string | null;
+  amountMinor: Minor;
+  paidMinor: Minor;
+  outstandingMinor: Minor;
+  dueDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string | null;
+}
+export interface CommitmentEvent {
+  id: string;
+  eventType: string;
+  oldDueDate?: string | null;
+  newDueDate?: string | null;
+  amountMinor?: Minor | null;
+  note?: string | null;
+  occurredAt: string;
+}
+export interface CommitmentDetail {
+  commitment: Commitment;
+  events: CommitmentEvent[];
+}
+export interface CreateCommitmentRequest {
+  counterpartyType: string;
+  counterpartyId?: string;
+  counterpartyName?: string;
+  sourceType?: string;
+  sourceRef?: string;
+  description?: string;
+  amountMinor: Minor;
+  dueDate: string;
+}
+export interface RecordCommitmentPaymentRequest {
+  amountMinor: Minor;
+  note?: string;
+}
+export interface RescheduleCommitmentRequest {
+  newDueDate: string;
+  note?: string;
+}
+
+// --- Installments (installment-service) ---
+export interface InstallmentEmi {
+  id: string;
+  emiNumber: number;
+  dueDate: string;
+  amountMinor: Minor;
+  paidMinor: Minor;
+  status: string;
+}
+export interface Installment {
+  id: string;
+  type: "RECEIVABLE" | "PAYABLE";
+  counterpartyId?: string | null;
+  counterpartyName?: string | null;
+  sourceType?: string | null;
+  sourceRef?: string | null;
+  totalAmountMinor: Minor;
+  outstandingMinor: Minor;
+  numberOfEmis: number;
+  frequency: string;
+  status: string;
+  emis: InstallmentEmi[];
+}
+export interface CreateInstallmentRequest {
+  type: string;
+  counterpartyId?: string;
+  counterpartyName?: string;
+  sourceType?: string;
+  sourceRef?: string;
+  totalAmountMinor: Minor;
+  numberOfEmis: number;
+  firstDueDate: string;
+  frequency?: string;
+}
+export interface PayInstallmentEmiRequest {
+  emiNumber: number;
+  amountMinor: Minor;
+}
+export interface ModifyInstallmentRequest {
+  numberOfEmis: number;
+  firstDueDate: string;
+  frequency?: string;
+}
+
+// --- Reminders (notification-service) ---
+export interface Reminder {
+  id: string;
+  sourceType?: string | null;
+  sourceRef?: string | null;
+  emiNumber?: number | null;
+  channel: string;
+  templateCode: string;
+  recipient: string;
+  dueDate: string;
+  sendOn: string;
+  offsetDays: number;
+  status: string;
+}
+export interface ScheduleReminderRequest {
+  sourceType?: string;
+  sourceRef?: string;
+  emiNumber?: number;
+  channel: string;
+  templateCode: string;
+  recipient: string;
+  variables?: Record<string, string>;
+  dueDate: string;
+  offsets?: number[];
+}
+export interface CountResponse {
+  count: number;
 }
 
 // --- Reconciliation (reconciliation-service) ---

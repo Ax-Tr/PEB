@@ -5,6 +5,7 @@ import com.paywithease.payout.domain.Payout;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -51,6 +52,12 @@ public class PayoutController {
             stepUpVerified);
     return new PayoutDtos.CreatePayoutResponse(
         r.payoutId(), r.status(), r.riskLevel(), r.requiresApproval());
+  }
+
+  @GetMapping
+  @Operation(summary = "List payouts for the current tenant, newest first")
+  public List<PayoutDtos.PayoutResponse> list() {
+    return service.list().stream().map(PayoutController::toResponse).toList();
   }
 
   @GetMapping("/{id}")

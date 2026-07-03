@@ -2,19 +2,23 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
+import { EntityPicker } from "../../components/EntityPicker";
 import { Screen } from "../../components/Screen";
 import { TextField } from "../../components/TextField";
 import { ApiError } from "../../shared/http";
 import { parseRupeesToMinor } from "../../shared/money";
 import { STEP_UP_THRESHOLD_MINOR, requestStepUp } from "../../shared/stepUp";
-import type { CreatePayoutResponse } from "../../shared/types";
+import type { BankAccount, CreatePayoutResponse, Vendor } from "../../shared/types";
 import { theme } from "../../theme/theme";
+import { useVendorBankAccounts, useVendors } from "../masters/hooks";
 import { useApprovePayout, useCreatePayout, useRejectPayout } from "./hooks";
 
 /** Pay a vendor/employee: create a payout (maker) and, if high-risk, route to approval (checker). */
 export function PayScreen(): React.ReactElement {
-  const [partyId, setPartyId] = useState("");
-  const [beneficiaryId, setBeneficiaryId] = useState("");
+  const vendors = useVendors();
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [beneficiaryId, setBeneficiaryId] = useState<string | null>(null);
+  const bankAccounts = useVendorBankAccounts(vendor?.id ?? null);
   const [amount, setAmount] = useState("");
   const [purpose, setPurpose] = useState("");
   const [amountError, setAmountError] = useState<string | undefined>();
@@ -49,10 +53,13 @@ export function PayScreen(): React.ReactElement {
         return;
       }
     }
+    if (!vendor || !beneficiaryId) {
+      return;
+    }
     create.mutate({
       partyType: "VENDOR",
-      partyId: partyId.trim(),
-      beneficiaryId: beneficiaryId.trim(),
+      partyId: vendor.id,
+      beneficiaryId,
       amountMinor,
       purpose: purpose.trim() || undefined,
       stepUpVerified,
@@ -65,8 +72,31 @@ export function PayScreen(): React.ReactElement {
 
       {!result ? (
         <Card>
-          <TextField label="Vendor ID" value={partyId} onChangeText={setPartyId} placeholder="vendor id" autoFocus />
-          <TextField label="Beneficiary (bank) ID" value={beneficiaryId} onChangeText={setBeneficiaryId} placeholder="beneficiary id" />
+          <EntityPicker<Vendor>
+            testID="pay-vendor"
+            label="Vendor"
+            items={vendors.data}
+            loading={vendors.isLoading}
+            selectedId={vendor?.id ?? null}
+            getId={(v) => v.id}
+            getLabel={(v) => v.name}
+            onSelect={(v) => {
+              setVendor(v);
+              setBeneficiaryId(null);
+            }}
+            emptyText="No vendors yet."
+          />
+          <EntityPicker<BankAccount>
+            testID="pay-beneficiary"
+            label="Beneficiary bank account"
+            items={bankAccounts.data}
+            loading={bankAccounts.isLoading}
+            selectedId={beneficiaryId}
+            getId={(b) => b.id}
+            getLabel={(b) => b.accountNumberMasked}
+            onSelect={(b) => setBeneficiaryId(b.id)}
+            emptyText={vendor ? "No confirmed bank accounts for this vendor." : "Select a vendor first."}
+          />
           <TextField label="Amount (₹)" value={amount} onChangeText={setAmount} placeholder="0.00" keyboardType="decimal-pad" error={amountError} />
           <TextField label="Purpose (optional)" value={purpose} onChangeText={setPurpose} placeholder="e.g. June supplies" />
           {create.isError ? (
@@ -79,7 +109,7 @@ export function PayScreen(): React.ReactElement {
             title="Create payout"
             onPress={onCreate}
             loading={create.isPending}
-            disabled={partyId.length === 0 || beneficiaryId.length === 0 || amount.length === 0}
+            disabled={!vendor || !beneficiaryId || amount.length === 0}
           />
         </Card>
       ) : (
@@ -121,8 +151,8 @@ export function PayScreen(): React.ReactElement {
               create.reset();
               approve.reset();
               reject.reset();
-              setPartyId("");
-              setBeneficiaryId("");
+              setVendor(null);
+              setBeneficiaryId(null);
               setAmount("");
               setPurpose("");
             }}

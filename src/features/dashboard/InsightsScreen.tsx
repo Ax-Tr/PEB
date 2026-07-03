@@ -6,9 +6,9 @@ import { Money } from "../../components/Money";
 import { QueryState } from "../../components/QueryState";
 import { Screen } from "../../components/Screen";
 import { formatINR, toRupees } from "../../shared/money";
-import type { Aging, Cashflow, ProductProfitability } from "../../shared/types";
+import type { Aging, AnalyticsCommitmentItem, Cashflow, CollectionEfficiency, ProductProfitability } from "../../shared/types";
 import { theme } from "../../theme/theme";
-import { useCashflow, useReceivablesAging } from "./hooks";
+import { useBrokenPromises, useCashflow, useCollectionEfficiency, useReceivablesAging } from "./hooks";
 import { usePayablesAging, useProductProfitability } from "./detailHooks";
 
 const BUCKET_LABEL: Record<string, string> = {
@@ -24,6 +24,8 @@ export function InsightsScreen(): React.ReactElement {
   const payables = usePayablesAging();
   const cashflow = useCashflow();
   const products = useProductProfitability();
+  const efficiency = useCollectionEfficiency();
+  const broken = useBrokenPromises();
 
   return (
     <Screen>
@@ -57,6 +59,37 @@ export function InsightsScreen(): React.ReactElement {
                 ))}
               </>
             )}
+          </Card>
+        )}
+      </QueryState>
+
+      <QueryState query={efficiency}>
+        {(e: CollectionEfficiency) => (
+          <Card title="Collection efficiency">
+            <View style={styles.line}>
+              <Text style={styles.label}>Promised</Text>
+              <Money minor={e.promisedMinor} size="body" />
+            </View>
+            <View style={styles.line}>
+              <Text style={styles.label}>Collected</Text>
+              <Money minor={e.collectedMinor} size="body" />
+            </View>
+            <Text style={styles.totalLabel}>Conversion {e.conversionPct}%</Text>
+          </Card>
+        )}
+      </QueryState>
+
+      <QueryState query={broken} emptyWhen={(l) => l.length === 0} emptyText="No broken promises in analytics yet.">
+        {(list: AnalyticsCommitmentItem[]) => (
+          <Card title="Broken promises">
+            {list.slice(0, 8).map((item) => (
+              <View key={item.commitmentId} style={styles.line}>
+                <Text style={styles.label} numberOfLines={1}>
+                  {item.counterpartyName ?? item.counterpartyType} · due {item.dueDate}
+                </Text>
+                <Money minor={item.outstandingMinor} size="body" />
+              </View>
+            ))}
           </Card>
         )}
       </QueryState>

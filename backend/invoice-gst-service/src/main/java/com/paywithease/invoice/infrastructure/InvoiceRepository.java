@@ -10,6 +10,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, String> {
 
   Optional<Invoice> findByTenantIdAndId(String tenantId, String id);
 
+  List<Invoice> findByTenantIdOrderByInvoiceDateDesc(String tenantId);
+
   List<Invoice> findByTenantIdAndInvoiceDateBetweenOrderByInvoiceDateAsc(
       String tenantId, LocalDate from, LocalDate to);
 }

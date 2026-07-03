@@ -8,11 +8,13 @@ import com.paywithease.ai.domain.AnomalyDetector;
 import com.paywithease.ai.infrastructure.AiFeedback;
 import com.paywithease.ai.infrastructure.AiSuggestion;
 import com.paywithease.ai.infrastructure.AnomalyAlert;
+import com.paywithease.ai.infrastructure.VoiceDraft;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +64,13 @@ public final class AiDtos {
 
   /** A natural-language finance question for the advisory assistant. */
   public record AskAssistantRequest(@NotBlank String question) {}
+
+  /** Parsed voice transcript. The frontend can pass typed text until native STT is wired. */
+  public record ParseVoiceRequest(@NotBlank String transcript) {}
+
+  public record ApproveVoiceDraftRequest(Map<String, Object> fields) {}
+
+  public record RejectVoiceDraftRequest(String reason) {}
 
   // -------------------- Responses --------------------
 
@@ -134,6 +143,43 @@ public final class AiDtos {
     static AssistantResponse from(AiAutomationService.AssistantResponse a) {
       return new AssistantResponse(
           a.answer(), a.confidence(), a.modelAvailable(), a.injectionDetected());
+    }
+  }
+
+  public record VoiceDraftResponse(
+      String id,
+      String transcript,
+      String sanitizedTranscript,
+      String intent,
+      String status,
+      JsonNode fields,
+      JsonNode missingFields,
+      BigDecimal confidence,
+      boolean suspicious,
+      String materializedRef,
+      String rejectionReason,
+      Instant createdAt,
+      Instant updatedAt,
+      Instant reviewedAt,
+      String reviewedBy) {
+
+    static VoiceDraftResponse from(VoiceDraft draft, ObjectMapper objectMapper) {
+      return new VoiceDraftResponse(
+          draft.getId(),
+          draft.getTranscript(),
+          draft.getSanitizedTranscript(),
+          draft.getIntent(),
+          draft.getStatus(),
+          parseSuggestion(draft.getFieldsJson(), objectMapper),
+          parseSuggestion(draft.getMissingFieldsJson(), objectMapper),
+          draft.getConfidence(),
+          draft.isSuspicious(),
+          draft.getMaterializedRef(),
+          draft.getRejectionReason(),
+          draft.getCreatedAt(),
+          draft.getUpdatedAt(),
+          draft.getReviewedAt(),
+          draft.getReviewedBy());
     }
   }
 

@@ -154,4 +154,47 @@ public class AiAutomationController {
   public AiDtos.AssistantResponse ask(@Valid @RequestBody AiDtos.AskAssistantRequest body) {
     return AiDtos.AssistantResponse.from(service.askAssistant(body.question()));
   }
+
+  // -------------------- Voice drafts --------------------
+
+  @PostMapping("/voice/parse")
+  @PreAuthorize("hasAnyRole('OWNER','CO_OWNER','ACCOUNTANT','CA','CASHIER')")
+  @Operation(summary = "Parse a voice transcript into a reviewed financial draft")
+  public AiDtos.VoiceDraftResponse parseVoice(@Valid @RequestBody AiDtos.ParseVoiceRequest body) {
+    return AiDtos.VoiceDraftResponse.from(service.parseVoice(body.transcript()), objectMapper);
+  }
+
+  @GetMapping("/voice/drafts")
+  @Operation(summary = "List voice drafts for review")
+  public List<AiDtos.VoiceDraftResponse> listVoiceDrafts(
+      @RequestParam(required = false) String status) {
+    return service.listVoiceDrafts(status).stream()
+        .map(d -> AiDtos.VoiceDraftResponse.from(d, objectMapper))
+        .toList();
+  }
+
+  @GetMapping("/voice/drafts/{id}")
+  @Operation(summary = "Get a voice draft")
+  public AiDtos.VoiceDraftResponse getVoiceDraft(@PathVariable String id) {
+    return AiDtos.VoiceDraftResponse.from(service.getVoiceDraft(id), objectMapper);
+  }
+
+  @PostMapping("/voice/drafts/{id}/approve")
+  @PreAuthorize("hasAnyRole('OWNER','CO_OWNER','ACCOUNTANT','CA')")
+  @Operation(summary = "Approve a voice draft; only then may a domain record be created")
+  public AiDtos.VoiceDraftResponse approveVoiceDraft(
+      @PathVariable String id,
+      @RequestBody(required = false) AiDtos.ApproveVoiceDraftRequest body) {
+    return AiDtos.VoiceDraftResponse.from(
+        service.approveVoiceDraft(id, body == null ? null : body.fields()), objectMapper);
+  }
+
+  @PostMapping("/voice/drafts/{id}/reject")
+  @PreAuthorize("hasAnyRole('OWNER','CO_OWNER','ACCOUNTANT','CA','CASHIER')")
+  @Operation(summary = "Reject/discard a voice draft")
+  public AiDtos.VoiceDraftResponse rejectVoiceDraft(
+      @PathVariable String id, @RequestBody(required = false) AiDtos.RejectVoiceDraftRequest body) {
+    return AiDtos.VoiceDraftResponse.from(
+        service.rejectVoiceDraft(id, body == null ? null : body.reason()), objectMapper);
+  }
 }

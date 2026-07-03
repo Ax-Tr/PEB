@@ -131,6 +131,28 @@ class NotificationServiceTest {
   }
 
   @Test
+  void scheduleRemindersDedupesExistingSourceOffset() {
+    when(reminders.existsByTenantIdAndSourceRefAndEmiNumberAndOffsetDays("tenant1", "inst1", 1, 3))
+        .thenReturn(true);
+
+    int created =
+        service.scheduleReminders(
+            "INSTALLMENT_EMI",
+            "inst1",
+            1,
+            Channel.SMS,
+            "EMI_DUE",
+            "9876543210",
+            Map.of("name", "Rahul"),
+            LocalDate.of(2026, 7, 20),
+            List.of(3, 1, 0),
+            LocalDate.of(2026, 7, 1));
+
+    assertThat(created).isEqualTo(2);
+    verify(reminders, times(2)).save(any(ReminderSchedule.class));
+  }
+
+  @Test
   void processDueRemindersSendsAndMarks() {
     ReminderSchedule due =
         new ReminderSchedule(

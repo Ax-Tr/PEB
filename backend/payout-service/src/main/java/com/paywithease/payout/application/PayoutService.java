@@ -20,6 +20,7 @@ import com.paywithease.payout.infrastructure.PayoutApprovalRepository;
 import com.paywithease.payout.infrastructure.PayoutRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -283,6 +284,11 @@ public class PayoutService {
   @Transactional(readOnly = true)
   public Payout get(String id) {
     return load(id);
+  }
+
+  @Transactional(readOnly = true)
+  public List<Payout> list() {
+    return payouts.findByTenantIdOrderByCreatedAtDesc(TenantContext.requireTenantId());
   }
 
   private Payout load(String id) {

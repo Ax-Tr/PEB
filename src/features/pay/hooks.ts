@@ -1,8 +1,15 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http } from "../../shared/api";
 import { API_PREFIX } from "../../shared/constants";
 import { cryptoRandomId } from "../../shared/http";
 import type { CreatePayoutRequest, CreatePayoutResponse, PayoutResponse } from "../../shared/types";
+
+export function usePayouts() {
+  return useQuery({
+    queryKey: ["payouts"],
+    queryFn: () => http.get<PayoutResponse[]>(`${API_PREFIX}/payouts`),
+  });
+}
 
 /**
  * Create a payout. Idempotency-Key guards against a double-submit; {@code stepUpVerified} passes the

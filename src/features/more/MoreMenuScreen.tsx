@@ -9,9 +9,10 @@ import type { MoreStackParamList } from "../../navigation/types";
 
 type Props = StackScreenProps<MoreStackParamList, "MoreMenu">;
 
-const ITEMS: { route: "Insights" | "DataRights" | "Assistant"; title: string; desc: string }[] = [
+const ITEMS: { route: "Insights" | "DataRights" | "Assistant" | "VoiceDraftReview"; title: string; desc: string }[] = [
   { route: "Insights", title: "Insights", desc: "Aging, cashflow by month, product profitability" },
   { route: "Assistant", title: "AI assistant", desc: "Ask questions · review suggestions · anomalies" },
+  { route: "VoiceDraftReview", title: "Voice drafts", desc: "Review spoken financial actions before creating records" },
   { route: "DataRights", title: "Data rights (DPDP)", desc: "Access / erasure / grievance requests" },
 ];
 

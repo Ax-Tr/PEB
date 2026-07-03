@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Card } from "../../components/Card";
 import { Money } from "../../components/Money";
 import { QueryState } from "../../components/QueryState";
 import { Screen } from "../../components/Screen";
+import { syncPushRegistration } from "../../shared/push";
 import type { StreamFreshness } from "../../shared/types";
 import { theme } from "../../theme/theme";
-import { useCashflow, useFreshness, usePnl, useReceivablesAging } from "./hooks";
+import {
+  useCashflow,
+  useCommitmentSummary,
+  useFreshness,
+  usePnl,
+  useReceivablesAging,
+  useUpcomingObligations,
+} from "./hooks";
 
 /** Owner home: this month's P&L, cashflow, receivables — served from analytics read-models. */
 export function DashboardScreen(): React.ReactElement {
@@ -14,6 +22,14 @@ export function DashboardScreen(): React.ReactElement {
   const cashflow = useCashflow();
   const receivables = useReceivablesAging();
   const freshness = useFreshness();
+  const commitments = useCommitmentSummary();
+  const upcoming = useUpcomingObligations(7);
+
+  // Register for push + persist the token to notification-service once the user is in the app
+  // (fail-soft; no-op on web / without native config).
+  useEffect(() => {
+    void syncPushRegistration();
+  }, []);
 
   return (
     <Screen>
@@ -56,8 +72,43 @@ export function DashboardScreen(): React.ReactElement {
           </Card>
         )}
       </QueryState>
+      <QueryState query={commitments}>
+        {(s) => (
+          <Card title="Commitments">
+            <View style={styles.row}>
+              <Metric label="Due today" value={<Money minor={s.dueTodayMinor} />} />
+              <Metric label="Overdue" value={<Money minor={s.overdueMinor} />} />
+              <Metric label="Broken" value={<Text style={styles.metricText}>{s.brokenCount}</Text>} />
+            </View>
+            <Text style={styles.sub}>
+              {s.openCount} open · <MoneyText minor={s.openOutstandingMinor} /> outstanding
+            </Text>
+          </Card>
+        )}
+      </QueryState>
+
+      <QueryState query={upcoming}>
+        {(items) => (
+          <Card title="Upcoming obligations">
+            {items.length === 0 ? (
+              <Text style={styles.sub}>No commitments due in the next 7 days.</Text>
+            ) : (
+              items.slice(0, 3).map((item) => (
+                <View key={item.commitmentId} style={styles.itemRow}>
+                  <Text style={styles.itemText}>{item.counterpartyName ?? item.counterpartyType}</Text>
+                  <Money minor={item.outstandingMinor} size="body" />
+                </View>
+              ))
+            )}
+          </Card>
+        )}
+      </QueryState>
     </Screen>
   );
+}
+
+function MoneyText({ minor }: { minor: number }): React.ReactElement {
+  return <Money minor={minor} size="body" />;
 }
 
 function Metric({ label, value }: { label: string; value: React.ReactNode }): React.ReactElement {
@@ -92,7 +143,10 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: theme.space(4), flexWrap: "wrap" },
   metric: { gap: theme.space(1), minWidth: 90 },
   metricLabel: { color: theme.color.textMuted, fontSize: theme.font.caption },
+  metricText: { color: theme.color.text, fontSize: theme.font.h2, fontWeight: "800" },
   sub: { color: theme.color.textMuted, fontSize: theme.font.caption },
+  itemRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  itemText: { color: theme.color.text, fontSize: theme.font.body, flexShrink: 1, paddingRight: theme.space(2) },
   badge: {
     flexDirection: "row",
     alignItems: "center",

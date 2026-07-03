@@ -103,8 +103,16 @@ public class ReminderSchedule {
     return tenantId;
   }
 
+  public String getSourceType() {
+    return sourceType;
+  }
+
   public Channel channelEnum() {
     return Channel.valueOf(channel);
+  }
+
+  public String getChannel() {
+    return channel;
   }
 
   public String getTemplateCode() {

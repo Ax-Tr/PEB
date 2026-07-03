@@ -42,9 +42,24 @@ public final class NotificationDtos {
       String providerRef,
       int attempts) {}
 
-  public record ReminderResponse(String id, LocalDate sendOn, int offsetDays, String status) {}
+  public record ReminderResponse(
+      String id,
+      String sourceType,
+      String sourceRef,
+      Integer emiNumber,
+      String channel,
+      String templateCode,
+      String recipient,
+      LocalDate dueDate,
+      LocalDate sendOn,
+      int offsetDays,
+      String status) {}
 
   public record DeliveryReceipt(@NotBlank String providerRef, boolean delivered, String reason) {}
 
   public record CountResponse(int count) {}
+
+  public record RegisterDeviceRequest(@NotBlank String token, @NotBlank String platform) {}
+
+  public record DeviceResponse(String id, String platform, boolean active) {}
 }

@@ -160,6 +160,40 @@ class InvoiceServiceTest {
   }
 
   @Test
+  void listReturnsTenantInvoices() {
+    Invoice inv =
+        new Invoice(
+            "inv1",
+            "tenant1",
+            DocumentType.TAX_INVOICE.name(),
+            "B2B",
+            "cust1",
+            "Acme",
+            "29ABCDE1234F1Z5",
+            "27",
+            "27",
+            "INV/2026-27/00001",
+            "2026-27",
+            LocalDate.of(2026, 5, 15),
+            null,
+            null,
+            false,
+            true,
+            100000,
+            9000,
+            9000,
+            0,
+            18000,
+            118000,
+            Instant.parse("2026-05-15T10:00:00Z"));
+    when(invoiceRepo.findByTenantIdOrderByInvoiceDateDesc("tenant1")).thenReturn(List.of(inv));
+
+    List<Invoice> result = service.list();
+
+    assertThat(result).containsExactly(inv);
+  }
+
+  @Test
   void markSentEmitsInvoiceSent() {
     Invoice issued =
         new Invoice(

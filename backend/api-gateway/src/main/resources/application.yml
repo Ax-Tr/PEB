@@ -78,6 +78,10 @@ spring:
           uri: ${INSTALLMENT_URI:http://localhost:8092}
           predicates:
             - Path=/api/v1/installments/**
+        - id: commitment-service
+          uri: ${COMMITMENT_URI:http://localhost:8102}
+          predicates:
+            - Path=/api/v1/commitments/**
         - id: notification-service
           uri: ${NOTIFICATION_URI:http://localhost:8093}
           predicates:
@@ -114,6 +118,10 @@ spring:
           uri: ${PRIVACY_URI:http://localhost:8101}
           predicates:
             - Path=/api/v1/privacy/**
+        - id: ocr-document-service
+          uri: ${OCR_DOCUMENT_URI:http://localhost:8103}
+          predicates:
+            - Path=/api/v1/documents/**,/api/v1/ocr/**
       httpclient:
         connect-timeout: 2000
         response-timeout: 5s

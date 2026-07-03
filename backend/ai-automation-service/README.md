@@ -59,6 +59,21 @@ Assistant:
 
 - `POST /assistant/ask` `{question}` — ask the advisory assistant *(authenticated)*
 
+### Gemini assistant adapter
+
+The assistant is wired through `AiAssistantPort`. If `GEMINI_API_KEY` is present, the service uses
+Gemini's REST content-generation API; if it is absent, `UnavailableAssistant` keeps the feature in
+manual-review fallback mode.
+
+Runtime configuration:
+
+- `GEMINI_API_KEY` - required to enable Gemini; keep this in secret storage, never in git.
+- `GEMINI_MODEL` - optional, defaults to `gemini-3-flash-preview`.
+- `GEMINI_BASE_URL` - optional, defaults to `https://generativelanguage.googleapis.com/v1beta`.
+
+The adapter remains read-only/advisory: it receives only tenant-scoped context and cannot call
+payment, ledger, filing, bank-detail, or other state-changing APIs.
+
 ## Events
 
 Subscribes to `ingestion.events`. Emits `AI_SUGGESTION_CREATED` and `ANOMALY_DETECTED` via the

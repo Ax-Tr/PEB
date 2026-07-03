@@ -36,7 +36,12 @@ public interface TopicResolver {
       if (eventType.startsWith("REMINDER_") || eventType.startsWith("NOTIFICATION_")) {
         return "notification.events";
       }
+      if (eventType.startsWith("COMMITMENT_")) return "commitment.events";
       if (eventType.startsWith("INSTALLMENT_")) return "installment.events";
+      if (eventType.startsWith("OCR_")) return "ocr.events";
+      if (eventType.startsWith("AI_")
+          || eventType.startsWith("ANOMALY_")
+          || eventType.startsWith("VOICE_")) return "ai.events";
       if (eventType.startsWith("JOURNAL_") || eventType.startsWith("MONTH_"))
         return "ledger.events";
       if (eventType.startsWith("BUSINESS_")) return "tenant.events";

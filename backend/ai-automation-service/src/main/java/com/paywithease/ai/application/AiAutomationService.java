@@ -6,14 +6,18 @@ import com.paywithease.ai.domain.AiCategorizer;
 import com.paywithease.ai.domain.AnomalyDetector;
 import com.paywithease.ai.domain.CashflowPredictor;
 import com.paywithease.ai.domain.ConfidencePolicy;
+import com.paywithease.ai.domain.ParsedVoiceIntent;
 import com.paywithease.ai.domain.PromptInjectionScanner;
 import com.paywithease.ai.domain.SuggestionKind;
+import com.paywithease.ai.domain.VoiceIntentParser;
 import com.paywithease.ai.infrastructure.AiFeedback;
 import com.paywithease.ai.infrastructure.AiFeedbackRepository;
 import com.paywithease.ai.infrastructure.AiSuggestion;
 import com.paywithease.ai.infrastructure.AiSuggestionRepository;
 import com.paywithease.ai.infrastructure.AnomalyAlert;
 import com.paywithease.ai.infrastructure.AnomalyAlertRepository;
+import com.paywithease.ai.infrastructure.VoiceDraft;
+import com.paywithease.ai.infrastructure.VoiceDraftRepository;
 import com.paywithease.common.audit.AuditWriter;
 import com.paywithease.common.error.ApiException;
 import com.paywithease.common.error.ErrorCode;
@@ -44,32 +48,41 @@ public class AiAutomationService {
   private final AiSuggestionRepository suggestions;
   private final AnomalyAlertRepository alerts;
   private final AiFeedbackRepository feedback;
+  private final VoiceDraftRepository voiceDrafts;
   private final AuditWriter audit;
   private final OutboxWriter outbox;
   private final ObjectMapper objectMapper;
   private final Clock clock;
   private final AiAssistantPort assistant;
+  private final VoiceIntentParser voiceIntentParser;
+  private final VoiceDraftMaterializer voiceDraftMaterializer;
   private final ConfidencePolicy policy;
 
   public AiAutomationService(
       AiSuggestionRepository suggestions,
       AnomalyAlertRepository alerts,
       AiFeedbackRepository feedback,
+      VoiceDraftRepository voiceDrafts,
       AuditWriter audit,
       OutboxWriter outbox,
       ObjectMapper objectMapper,
       Clock clock,
       AiAssistantPort assistant,
+      VoiceIntentParser voiceIntentParser,
+      VoiceDraftMaterializer voiceDraftMaterializer,
       @Value("${peb.ai.auto-apply-threshold:0.90}") double autoApplyThreshold,
       @Value("${peb.ai.review-threshold:0.50}") double reviewThreshold) {
     this.suggestions = suggestions;
     this.alerts = alerts;
     this.feedback = feedback;
+    this.voiceDrafts = voiceDrafts;
     this.audit = audit;
     this.outbox = outbox;
     this.objectMapper = objectMapper;
     this.clock = clock;
     this.assistant = assistant;
+    this.voiceIntentParser = voiceIntentParser;
+    this.voiceDraftMaterializer = voiceDraftMaterializer;
     this.policy = new ConfidencePolicy(autoApplyThreshold, reviewThreshold);
   }
 
@@ -311,6 +324,96 @@ public class AiAutomationService {
     return new AssistantResponse(a.text(), a.confidence(), a.modelAvailable(), scan.suspicious());
   }
 
+  // -------------------- Voice drafts --------------------
+
+  @Transactional
+  public VoiceDraft parseVoice(String transcript) {
+    String tenantId = TenantContext.requireTenantId();
+    PromptInjectionScanner.ScanResult scan = PromptInjectionScanner.scan(transcript);
+    ParsedVoiceIntent parsed = voiceIntentParser.parse(scan.sanitizedText());
+    VoiceDraft draft =
+        new VoiceDraft(
+            Ulid.newId(),
+            tenantId,
+            transcript,
+            scan.sanitizedText(),
+            parsed,
+            toJson(parsed.fields()),
+            toJson(parsed.missingFields()),
+            scan.suspicious(),
+            actor(),
+            clock.instant());
+    voiceDrafts.save(draft);
+    audit.record(
+        "VOICE_DRAFT_CREATED",
+        "voice_draft",
+        draft.getId(),
+        Map.of(
+            "intent", draft.getIntent(),
+            "confidence", draft.getConfidence(),
+            "suspicious", scan.suspicious()));
+    emitVoice("VOICE_DRAFT_CREATED", draft);
+    return draft;
+  }
+
+  @Transactional(readOnly = true)
+  public List<VoiceDraft> listVoiceDrafts(String status) {
+    String tenantId = TenantContext.requireTenantId();
+    return status == null || status.isBlank()
+        ? voiceDrafts.findByTenantIdOrderByCreatedAtDesc(tenantId)
+        : voiceDrafts.findByTenantIdAndStatusOrderByCreatedAtDesc(tenantId, status);
+  }
+
+  @Transactional(readOnly = true)
+  public VoiceDraft getVoiceDraft(String id) {
+    return loadVoiceDraft(id);
+  }
+
+  @Transactional
+  public VoiceDraft approveVoiceDraft(String id, Map<String, Object> reviewedFields) {
+    VoiceDraft draft = loadVoiceDraft(id);
+    if ("APPROVED".equals(draft.getStatus())) {
+      return draft;
+    }
+    if (!"NEEDS_REVIEW".equals(draft.getStatus())) {
+      throw new ApiException(ErrorCode.CONFLICT, "Only pending voice drafts can be approved");
+    }
+    Map<String, Object> fields =
+        reviewedFields == null || reviewedFields.isEmpty()
+            ? readMap(draft.getFieldsJson())
+            : reviewedFields;
+    validateVoiceDraftApproval(draft, fields);
+    if (draft.getMaterializedRef() == null) {
+      VoiceDraftMaterializer.MaterializedRecord materialized =
+          voiceDraftMaterializer.materialize(draft, fields);
+      draft.approve(materialized.id(), actor(), clock.instant());
+    }
+    voiceDrafts.save(draft);
+    audit.record(
+        "VOICE_DRAFT_APPROVED",
+        "voice_draft",
+        draft.getId(),
+        Map.of("intent", draft.getIntent(), "materializedRef", draft.getMaterializedRef()));
+    emitVoice("VOICE_DRAFT_APPROVED", draft);
+    return draft;
+  }
+
+  @Transactional
+  public VoiceDraft rejectVoiceDraft(String id, String reason) {
+    VoiceDraft draft = loadVoiceDraft(id);
+    if ("REJECTED".equals(draft.getStatus())) {
+      return draft;
+    }
+    if (!"NEEDS_REVIEW".equals(draft.getStatus())) {
+      throw new ApiException(ErrorCode.CONFLICT, "Only pending voice drafts can be rejected");
+    }
+    draft.reject(reason, actor(), clock.instant());
+    voiceDrafts.save(draft);
+    audit.record("VOICE_DRAFT_REJECTED", "voice_draft", draft.getId(), Map.of());
+    emitVoice("VOICE_DRAFT_REJECTED", draft);
+    return draft;
+  }
+
   // -------------------- helpers --------------------
 
   private AiSuggestion loadSuggestion(String id) {
@@ -323,6 +426,12 @@ public class AiAutomationService {
     return alerts
         .findByTenantIdAndId(TenantContext.requireTenantId(), id)
         .orElseThrow(() -> ApiException.notFound("Anomaly alert"));
+  }
+
+  private VoiceDraft loadVoiceDraft(String id) {
+    return voiceDrafts
+        .findByTenantIdAndId(TenantContext.requireTenantId(), id)
+        .orElseThrow(() -> ApiException.notFound("Voice draft"));
   }
 
   private String actor() {
@@ -355,6 +464,17 @@ public class AiAutomationService {
     emit("ANOMALY_DETECTED", a.getTenantId(), a.getId(), payload);
   }
 
+  private void emitVoice(String eventType, VoiceDraft draft) {
+    ObjectNode payload =
+        objectMapper
+            .createObjectNode()
+            .put("voiceDraftId", draft.getId())
+            .put("intent", draft.getIntent())
+            .put("status", draft.getStatus())
+            .put("suspicious", draft.isSuspicious());
+    emit(eventType, draft.getTenantId(), draft.getId(), payload);
+  }
+
   private void emit(String eventType, String tenantId, String aggregateId, ObjectNode payload) {
     EventEnvelope envelope =
         EventEnvelope.builder()
@@ -369,5 +489,34 @@ public class AiAutomationService {
             .payload(payload)
             .build(clock.instant());
     outbox.append(envelope);
+  }
+
+  private static void validateVoiceDraftApproval(VoiceDraft draft, Map<String, Object> fields) {
+    if ("CREATE_COMMITMENT".equals(draft.getIntent())) {
+      for (String required : List.of("counterpartyName", "amountMinor", "dueDate")) {
+        Object value = fields.get(required);
+        if (value == null || value.toString().isBlank()) {
+          throw new ApiException(
+              ErrorCode.VALIDATION_FAILED, "Voice draft is missing required field: " + required);
+        }
+      }
+    }
+  }
+
+  private String toJson(Object value) {
+    try {
+      return objectMapper.writeValueAsString(value);
+    } catch (Exception e) {
+      throw new ApiException(ErrorCode.INTERNAL_ERROR, "Could not serialize voice draft");
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> readMap(String json) {
+    try {
+      return objectMapper.readValue(json, Map.class);
+    } catch (Exception e) {
+      throw new ApiException(ErrorCode.INTERNAL_ERROR, "Could not read voice draft fields");
+    }
   }
 }

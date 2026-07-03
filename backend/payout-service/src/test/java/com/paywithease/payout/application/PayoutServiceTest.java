@@ -30,6 +30,7 @@ import com.paywithease.payout.infrastructure.PayoutRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
@@ -199,6 +200,28 @@ class PayoutServiceTest {
         .isInstanceOf(ApiException.class)
         .hasMessageContaining("Maker cannot approve");
     verify(gatewayRouter, never()).disburse(any(), anyLong(), any());
+  }
+
+  @Test
+  void listReturnsTenantPayouts() {
+    Payout payout =
+        new Payout(
+            "po1",
+            "tenant1",
+            PartyType.VENDOR,
+            "vendor1",
+            "ben1",
+            100000,
+            "supplies",
+            RiskLevel.LOW,
+            false,
+            "maker",
+            clock.instant());
+    when(payouts.findByTenantIdOrderByCreatedAtDesc("tenant1")).thenReturn(List.of(payout));
+
+    List<Payout> result = service.list();
+
+    assertThat(result).containsExactly(payout);
   }
 
   @Test

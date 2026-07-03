@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { auth } from "../../shared/api";
+import { unregisterPush } from "../../shared/push";
 
 interface AuthState {
   ready: boolean; // finished the initial token check
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   }, []);
 
   const logout = useCallback(async () => {
+    await unregisterPush(); // best-effort, while the session is still valid
     await auth.logout();
     setAuthed(false);
   }, []);

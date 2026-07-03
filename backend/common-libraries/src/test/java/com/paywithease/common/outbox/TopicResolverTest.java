@@ -31,6 +31,10 @@ class TopicResolverTest {
     assertThat(r.topicFor("RECONCILIATION_MATCHED")).isEqualTo("reconciliation.events");
     assertThat(r.topicFor("REMINDER_SENT")).isEqualTo("notification.events");
     assertThat(r.topicFor("INSTALLMENT_PAID")).isEqualTo("installment.events");
+    assertThat(r.topicFor("COMMITMENT_CREATED")).isEqualTo("commitment.events");
+    assertThat(r.topicFor("OCR_REVIEW_REQUIRED")).isEqualTo("ocr.events");
+    assertThat(r.topicFor("VOICE_DRAFT_CREATED")).isEqualTo("ai.events");
+    assertThat(r.topicFor("AI_SUGGESTION_CREATED")).isEqualTo("ai.events");
     assertThat(r.topicFor("JOURNAL_ENTRY_POSTED")).isEqualTo("ledger.events");
     assertThat(r.topicFor("BUSINESS_CREATED")).isEqualTo("tenant.events");
     assertThat(r.topicFor("USER_LOGGED_IN")).isEqualTo("identity.events");

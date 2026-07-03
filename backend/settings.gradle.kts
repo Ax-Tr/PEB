@@ -37,6 +37,7 @@ include("accounting-ledger-service")
 include("purchase-expense-service")
 include("payout-service")
 include("installment-service")
+include("commitment-service")           // Sprint 20: payment promises, due dates, broken-promise tracking
 include("notification-service")
 include("transaction-ingestion-service")
 include("reconciliation-service")
@@ -46,5 +47,5 @@ include("audit-evidence-service")       // Sprint 14
 include("ca-collaboration-service")     // Sprint 14
 include("ai-automation-service")        // Sprint 15
 include("privacy-service")              // Sprint 16 (DPDP data-rights: access/erasure/anonymization/grievance)
-// include("ocr-document-service")      // Sprint 6 / 15 (OCR extraction engine deferred; governance in ai-automation)
+include("ocr-document-service")         // Sprint 22: secure OCR document capture and bank-detail review
 // include("rules-engine-service")      // cross-cutting

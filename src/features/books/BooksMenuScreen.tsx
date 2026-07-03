@@ -8,7 +8,12 @@ import type { BooksStackParamList } from "../../navigation/types";
 type Props = StackScreenProps<BooksStackParamList, "BooksMenu">;
 
 const ITEMS: { route: keyof BooksStackParamList; title: string; desc: string }[] = [
-  { route: "Invoices", title: "Invoices", desc: "Create a GST invoice and send it" },
+  { route: "InvoiceList", title: "Invoices", desc: "View invoices; create and send a GST invoice" },
+  { route: "PayoutList", title: "Payouts", desc: "View vendor/employee payouts and their status" },
+  { route: "CommitmentList", title: "Commitments", desc: "Track promises, due dates, and broken follow-ups" },
+  { route: "InstallmentList", title: "Installments", desc: "Receivable and payable EMI schedules" },
+  { route: "ReminderList", title: "Reminders", desc: "Schedule and review follow-up reminders" },
+  { route: "BankOcrCapture", title: "OCR bank capture", desc: "Extract and review vendor bank details" },
   { route: "Reconciliation", title: "Reconciliation", desc: "Match bank vs books; confirm/reject" },
   { route: "Compliance", title: "Compliance reports", desc: "GST/TDS reports · review · approve · file" },
 ];

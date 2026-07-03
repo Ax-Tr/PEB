@@ -262,6 +262,11 @@ public class InvoiceService {
   }
 
   @Transactional(readOnly = true)
+  public List<Invoice> list() {
+    return invoices.findByTenantIdOrderByInvoiceDateDesc(TenantContext.requireTenantId());
+  }
+
+  @Transactional(readOnly = true)
   public List<InvoiceItem> items(String invoiceId) {
     return items.findByInvoiceId(invoiceId);
   }

@@ -715,3 +715,15 @@ without acknowledgement, tenant isolation, AI governance).
   adapters, live payment/e-invoice/WhatsApp integrations, KMS/DEK wiring, HA/DR/PITR execution,
   pen-test & human UAT sign-off, load-test runs, and app-store submission. Every procedure, manifest,
   script, and governance artifact to execute them is in the repo.
+
+---
+
+## Forward Sprint Plan - PDF Gap Closure
+
+The uploaded PayWithEase PDF comparison identified several product-level gaps that should be treated
+as the next delivery track: commitment tracking, first-class installment/reminder mobile UX, real OCR
+bank capture, voice financial input, and dashboard analytics for promised collections and broken
+promises.
+
+The detailed sprint plan and checklist for this track is recorded in
+[pdf-gap-closure-sprint-plan.md](./pdf-gap-closure-sprint-plan.md).

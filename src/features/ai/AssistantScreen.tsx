@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import type { StackScreenProps } from "@react-navigation/stack";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Money } from "../../components/Money";
@@ -7,6 +8,7 @@ import { QueryState } from "../../components/QueryState";
 import { Screen } from "../../components/Screen";
 import { TextField } from "../../components/TextField";
 import { ApiError } from "../../shared/http";
+import type { MoreStackParamList } from "../../navigation/types";
 import type { AiSuggestion, AnomalyAlert } from "../../shared/types";
 import { theme } from "../../theme/theme";
 import { API_PREFIX } from "../../shared/constants";
@@ -17,12 +19,17 @@ import {
   useAskAssistant,
   useDecideAnomaly,
   useDecideSuggestion,
+  useParseVoice,
 } from "./hooks";
+import { VoiceCaptureModal } from "./VoiceCaptureModal";
 
 /** AI: ask the (governed) assistant, review suggestions with their confidence, and triage anomalies. */
-export function AssistantScreen(): React.ReactElement {
+type Props = StackScreenProps<MoreStackParamList, "Assistant">;
+
+export function AssistantScreen({ navigation }: Props): React.ReactElement {
   const [question, setQuestion] = useState("");
   const ask = useAskAssistant();
+  const parseVoice = useParseVoice();
   const suggestions = useAiSuggestions("PROPOSED");
   const accept = useDecideSuggestion("accept");
   const reject = useDecideSuggestion("reject");
@@ -31,6 +38,7 @@ export function AssistantScreen(): React.ReactElement {
   const dismissAnomaly = useDecideAnomaly("dismiss");
   const { postOrQueue } = useOfflineQueue();
   const [feedbackNote, setFeedbackNote] = useState<string | null>(null);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   const sendFeedback = async (id: string, helpful: boolean) => {
     const res = await postOrQueue(`AI feedback ${id}`, `${API_PREFIX}/ai/suggestions/${id}/feedback`, {
@@ -42,7 +50,18 @@ export function AssistantScreen(): React.ReactElement {
 
   return (
     <Screen>
+      <VoiceCaptureModal
+        visible={voiceOpen}
+        loading={parseVoice.isPending}
+        onClose={() => setVoiceOpen(false)}
+        onSubmit={async (transcript) => {
+          const draft = await parseVoice.mutateAsync(transcript);
+          setVoiceOpen(false);
+          navigation.navigate("VoiceDraftReview", { draftId: draft.id });
+        }}
+      />
       <Card title="Ask the finance assistant">
+        <Button title="Voice financial input" variant="secondary" onPress={() => setVoiceOpen(true)} />
         <TextField label="Question" value={question} onChangeText={setQuestion} placeholder="e.g. How is my cash position?" />
         <Button title="Ask" onPress={() => ask.mutate(question.trim())} loading={ask.isPending} disabled={question.trim().length === 0} />
         {ask.data ? (

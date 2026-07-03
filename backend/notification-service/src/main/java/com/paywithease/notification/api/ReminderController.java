@@ -59,15 +59,29 @@ public class ReminderController {
   }
 
   @GetMapping
-  @Operation(summary = "List scheduled reminders for a source reference")
-  public List<NotificationDtos.ReminderResponse> list(@RequestParam String sourceRef) {
-    return reminders
-        .findByTenantIdAndSourceRefOrderBySendOn(TenantContext.requireTenantId(), sourceRef)
-        .stream()
-        .map(
-            r ->
-                new NotificationDtos.ReminderResponse(
-                    r.getId(), r.getSendOn(), r.getOffsetDays(), r.getStatus()))
-        .toList();
+  @Operation(summary = "List scheduled reminders, optionally for a source reference")
+  public List<NotificationDtos.ReminderResponse> list(
+      @RequestParam(required = false) String sourceRef) {
+    String tenantId = TenantContext.requireTenantId();
+    return (sourceRef == null || sourceRef.isBlank()
+            ? reminders.findByTenantIdOrderBySendOnDesc(tenantId)
+            : reminders.findByTenantIdAndSourceRefOrderBySendOn(tenantId, sourceRef))
+        .stream().map(ReminderController::toResponse).toList();
+  }
+
+  private static NotificationDtos.ReminderResponse toResponse(
+      com.paywithease.notification.domain.ReminderSchedule r) {
+    return new NotificationDtos.ReminderResponse(
+        r.getId(),
+        r.getSourceType(),
+        r.getSourceRef(),
+        r.getEmiNumber(),
+        r.getChannel(),
+        r.getTemplateCode(),
+        r.getRecipient(),
+        r.getDueDate(),
+        r.getSendOn(),
+        r.getOffsetDays(),
+        r.getStatus());
   }
 }
