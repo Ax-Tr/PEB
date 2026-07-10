@@ -12,27 +12,26 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Verifies the service boots against a real Postgres (Flyway baseline applies) and serves ping.
- * Redis and Kafka autoconfiguration are excluded so the test is hermetic (Sprint 0 has no flows
- * that use them yet).
+ * Kafka autoconfiguration is excluded so the test is hermetic. Redis and Postgres are provided via
+ * Testcontainers so the full Spring context (including OtpService) wires correctly.
  */
 @SpringBootTest(
     properties = {
-      // Redis autoconfig stays on (StringRedisTemplate is created lazily, no broker needed to
-      // boot);
-      // Kafka is excluded since Sprint 1 has no producers/consumers wired yet.
       "spring.autoconfigure.exclude="
           + "org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
     })
 @AutoConfigureMockMvc
-// disabledWithoutDocker: this integration test needs a real Postgres via Testcontainers, so it is
-// SKIPPED (not failed) when no Docker environment is present (e.g. local unit-only runs); it still
-// runs in CI where Docker is available.
+// disabledWithoutDocker: this integration test needs real Postgres + Redis via Testcontainers, so
+// it is SKIPPED (not failed) when no Docker environment is present (e.g. local unit-only runs);
+// it still runs in CI where Docker is available.
 @Testcontainers(disabledWithoutDocker = true)
 class PingIntegrationTest {
 
@@ -40,11 +39,18 @@ class PingIntegrationTest {
   static PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:16-alpine").withDatabaseName("identity_db");
 
+  @SuppressWarnings("resource")
+  @Container
+  static GenericContainer<?> redis =
+      new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
+
   @DynamicPropertySource
-  static void datasource(DynamicPropertyRegistry registry) {
+  static void infrastructure(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("spring.data.redis.host", redis::getHost);
+    registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
   }
 
   @Autowired MockMvc mockMvc;
