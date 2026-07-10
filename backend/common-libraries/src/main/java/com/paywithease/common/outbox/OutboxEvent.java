@@ -18,13 +18,13 @@ import org.hibernate.type.SqlTypes;
 public class OutboxEvent {
 
   @Id
-  @Column(length = 26, nullable = false)
+  @Column(columnDefinition = "char(26)", nullable = false)
   private String id;
 
   @Column(name = "aggregate_type", nullable = false)
   private String aggregateType;
 
-  @Column(name = "aggregate_id", length = 26, nullable = false)
+  @Column(name = "aggregate_id", columnDefinition = "char(26)", nullable = false)
   private String aggregateId;
 
   @Column(name = "event_type", nullable = false)
@@ -33,7 +33,7 @@ public class OutboxEvent {
   @Column(name = "event_version", nullable = false)
   private int eventVersion;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
   @JdbcTypeCode(SqlTypes.JSON)

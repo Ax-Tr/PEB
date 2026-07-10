@@ -15,10 +15,10 @@ import java.time.Instant;
 public class OtpAudit {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "mobile_hash", length = 64, nullable = false)
+  @Column(name = "mobile_hash", columnDefinition = "char(64)", nullable = false)
   private String mobileHash;
 
   @Column(nullable = false)

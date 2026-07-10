@@ -28,7 +28,7 @@ public class IdempotencyKey {
   }
 
   @Id
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
   @Id

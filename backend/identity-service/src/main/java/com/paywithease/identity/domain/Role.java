@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 public class Role {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
   @Column(nullable = false, unique = true)

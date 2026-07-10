@@ -12,13 +12,13 @@ import java.time.Instant;
 public class Device {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "user_id", length = 26, nullable = false)
+  @Column(name = "user_id", columnDefinition = "char(26)", nullable = false)
   private String userId;
 
-  @Column(name = "device_hash", length = 64, nullable = false)
+  @Column(name = "device_hash", columnDefinition = "char(64)", nullable = false)
   private String deviceHash;
 
   private String platform;

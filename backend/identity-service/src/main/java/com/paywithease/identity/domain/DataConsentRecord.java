@@ -12,10 +12,10 @@ import java.time.Instant;
 public class DataConsentRecord {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "user_id", length = 26, nullable = false)
+  @Column(name = "user_id", columnDefinition = "char(26)", nullable = false)
   private String userId;
 
   @Column(nullable = false)

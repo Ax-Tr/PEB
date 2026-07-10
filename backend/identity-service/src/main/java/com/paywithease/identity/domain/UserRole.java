@@ -16,20 +16,20 @@ import java.util.Objects;
 public class UserRole {
 
   @Id
-  @Column(name = "user_id", length = 26)
+  @Column(name = "user_id", columnDefinition = "char(26)")
   private String userId;
 
   @Id
-  @Column(name = "role_id", length = 26)
+  @Column(name = "role_id", columnDefinition = "char(26)")
   private String roleId;
 
-  @Column(name = "tenant_id", length = 26)
+  @Column(name = "tenant_id", columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "granted_at", nullable = false)
   private Instant grantedAt;
 
-  @Column(name = "granted_by", length = 26)
+  @Column(name = "granted_by", columnDefinition = "char(26)")
   private String grantedBy;
 
   protected UserRole() {}
