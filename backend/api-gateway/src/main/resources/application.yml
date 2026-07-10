@@ -12,6 +12,12 @@ spring:
           jwk-set-uri: ${IDENTITY_JWKS_URI:http://localhost:8081/oauth2/jwks}
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
       default-filters:
         # Strip the routing prefix before forwarding to the service.
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
@@ -146,3 +152,10 @@ springdoc:
 
 # Sprint 1 will add: JWT resource-server (JWKS from Keycloak), tenant-claim → X-Tenant-Id header,
 # and a KeyResolver bean for per-principal rate limiting.
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+

@@ -7,3 +7,4 @@ export interface TokenStore {
 
 export const ACCESS_TOKEN_KEY = "peb.accessToken";
 export const REFRESH_TOKEN_KEY = "peb.refreshToken";
+export const TENANT_ID_KEY = "peb.tenantId";

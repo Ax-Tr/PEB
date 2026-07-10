@@ -38,14 +38,22 @@ public class OutboxWriter {
                   "correlationId", nullSafe(envelope.correlationId()),
                   "causationId", nullSafe(envelope.causationId()),
                   "partitionKey", envelope.partitionKey()));
+      String partitionKey = envelope.partitionKey();
+      String aggregateId = partitionKey;
+      if (partitionKey != null) {
+        int idx = partitionKey.indexOf(':');
+        if (idx >= 0) {
+          aggregateId = partitionKey.substring(idx + 1);
+        }
+      }
       OutboxEvent event =
           new OutboxEvent(
               Ulid.newId(),
               envelope.eventType(),
-              envelope.partitionKey(),
+              aggregateId,
               envelope.eventType(),
               envelope.eventVersion(),
-              envelope.tenantId(),
+              envelope.tenantId() != null ? envelope.tenantId() : "00000000000000000000000000",
               payload,
               headers,
               clock.instant());

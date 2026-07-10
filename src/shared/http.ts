@@ -44,7 +44,7 @@ export class HttpClient {
   constructor(
     private readonly baseUrl: string,
     private readonly tokens: TokenProvider,
-    private readonly fetchImpl: typeof fetch = fetch,
+    private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
   ) {}
 
   get<T>(path: string, opts?: HttpOptions): Promise<T> {

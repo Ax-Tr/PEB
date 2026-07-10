@@ -80,10 +80,14 @@ public class AuthService {
   }
 
   @Transactional
-  public long requestOtp(String rawMobile) {
-    long ttl = otpService.request(rawMobile, PURPOSE_LOGIN);
+  public OtpService.RequestResult requestOtp(String rawMobile) {
+    var result = otpService.request(rawMobile, PURPOSE_LOGIN);
     audit.record("OTP_REQUESTED", "user", null, Map.of("purpose", PURPOSE_LOGIN));
-    return ttl;
+    return result;
+  }
+
+  public boolean isLogOtpForDev() {
+    return otpService.isLogOtpForDev();
   }
 
   public record DeviceInfo(String fingerprint, String platform, String model) {}
@@ -180,6 +184,25 @@ public class AuthService {
   public void logout(String sessionId, String userId) {
     sessionService.revoke(sessionId, userId);
     audit.record("SESSION_REVOKED", "user_session", sessionId, Map.of());
+  }
+
+  /**
+   * Links a newly-created business (tenantId) to the user record in the identity DB. Must only
+   * be called by the user themselves (validated by the caller via JWT subject). The next token
+   * refresh will embed the tenantId in the JWT and unlock all tenant-scoped APIs.
+   */
+  @Transactional
+  public void linkTenant(String userId, String tenantId) {
+    User user = users.findById(userId).orElseThrow(() -> ApiException.notFound("User"));
+    if (user.getTenantId() != null && !user.getTenantId().isBlank()) {
+      // Already linked — idempotent if same tenant, conflict otherwise
+      if (!user.getTenantId().equals(tenantId)) {
+        throw new ApiException(ErrorCode.CONFLICT, "User already linked to a different tenant");
+      }
+      return;
+    }
+    user.attachTenant(tenantId, clock.instant());
+    audit.record("TENANT_LINKED", "user", userId, Map.of("tenantId", tenantId));
   }
 
   @Transactional(readOnly = true)

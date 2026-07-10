@@ -35,8 +35,14 @@ public class AuthController {
   @PostMapping("/otp/request")
   @Operation(summary = "Request an OTP for a mobile number")
   public Map<String, Object> requestOtp(@Valid @RequestBody AuthDtos.OtpRequest body) {
-    long expiresIn = authService.requestOtp(body.mobile());
-    return Map.of("status", "sent", "expiresIn", expiresIn);
+    var result = authService.requestOtp(body.mobile());
+    var response = new java.util.HashMap<String, Object>();
+    response.put("status", "sent");
+    response.put("expiresIn", result.ttl());
+    if (authService.isLogOtpForDev()) {
+      response.put("otp", result.otp());
+    }
+    return response;
   }
 
   @PostMapping("/otp/verify")
@@ -95,6 +101,14 @@ public class AuthController {
   public ResponseEntity<Void> revoke(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
     authService.logout(id, jwt.getSubject());
     return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/link-tenant")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Link a newly-created tenant/business to the calling user's identity")
+  public void linkTenant(
+      @Valid @RequestBody AuthDtos.LinkTenantRequest body, @AuthenticationPrincipal Jwt jwt) {
+    authService.linkTenant(jwt.getSubject(), body.tenantId());
   }
 
   private static AuthDtos.AuthResponse toResponse(AuthService.AuthResult r) {

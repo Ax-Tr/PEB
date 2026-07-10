@@ -7,7 +7,7 @@ import { API_PREFIX } from "./constants";
 import type { TokenProvider } from "./http";
 import { cryptoRandomId } from "./http";
 import type { TokenStore } from "./tokens";
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "./tokens";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, TENANT_ID_KEY } from "./tokens";
 import type { OtpRequestResult, TokenPair } from "./types";
 
 /** Minimal fetch surface for auth calls (unauthenticated endpoints). */
@@ -15,6 +15,7 @@ type Fetcher = (path: string, body: unknown) => Promise<unknown>;
 
 export class AuthService implements TokenProvider {
   private accessToken: string | null = null;
+  private tenantId: string | null | undefined = undefined; // undefined = not yet loaded
 
   constructor(
     private readonly store: TokenStore,
@@ -28,10 +29,26 @@ export class AuthService implements TokenProvider {
   async verifyOtp(mobile: string, code: string, challengeId: string): Promise<void> {
     const tokens = (await this.post(`${API_PREFIX}/auth/otp/verify`, {
       mobile,
-      code,
+      otp: code,
       challengeId,
     })) as TokenPair;
     await this.persist(tokens);
+  }
+
+  async getTenantId(): Promise<string | null> {
+    if (this.tenantId !== undefined) return this.tenantId;
+    this.tenantId = await this.store.get(TENANT_ID_KEY);
+    return this.tenantId;
+  }
+
+  async hasTenant(): Promise<boolean> {
+    return (await this.getTenantId()) != null;
+  }
+
+  /** Call after the user creates their business so the app re-evaluates tenant gating. */
+  setTenantId(id: string): void {
+    this.tenantId = id;
+    void this.store.set(TENANT_ID_KEY, id);
   }
 
   async getAccessToken(): Promise<string | null> {
@@ -61,14 +78,22 @@ export class AuthService implements TokenProvider {
 
   async logout(): Promise<void> {
     this.accessToken = null;
+    this.tenantId = undefined;
     await this.store.remove(ACCESS_TOKEN_KEY);
     await this.store.remove(REFRESH_TOKEN_KEY);
+    await this.store.remove(TENANT_ID_KEY);
   }
 
   private async persist(tokens: TokenPair): Promise<void> {
     this.accessToken = tokens.accessToken;
+    this.tenantId = tokens.tenantId ?? null;
     await this.store.set(ACCESS_TOKEN_KEY, tokens.accessToken);
     await this.store.set(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    if (tokens.tenantId) {
+      await this.store.set(TENANT_ID_KEY, tokens.tenantId);
+    } else {
+      await this.store.remove(TENANT_ID_KEY);
+    }
   }
 }
 

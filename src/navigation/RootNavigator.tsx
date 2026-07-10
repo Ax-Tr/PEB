@@ -6,6 +6,7 @@ import { ReceiveScreen } from "../features/receive/ReceiveScreen";
 import { PayScreen } from "../features/pay/PayScreen";
 import { LoginScreen } from "../features/auth/LoginScreen";
 import { useAuth } from "../features/auth/AuthContext";
+import { BusinessOnboardingScreen } from "../features/onboarding/BusinessOnboardingScreen";
 import { useI18n } from "../features/i18n/I18nContext";
 import { BooksNavigator } from "./BooksNavigator";
 import { MoreNavigator } from "./MoreNavigator";
@@ -28,7 +29,7 @@ function HeaderRight(): React.ReactElement {
 }
 
 export function RootNavigator(): React.ReactElement {
-  const { ready, authed } = useAuth();
+  const { ready, authed, hasTenant } = useAuth();
   const { t } = useI18n();
 
   if (!ready) {
@@ -41,6 +42,11 @@ export function RootNavigator(): React.ReactElement {
 
   if (!authed) {
     return <LoginScreen />;
+  }
+
+  // Authenticated but no business yet — show onboarding flow
+  if (!hasTenant) {
+    return <BusinessOnboardingScreen />;
   }
 
   return (

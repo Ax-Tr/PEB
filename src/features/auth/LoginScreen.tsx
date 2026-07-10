@@ -30,6 +30,9 @@ export function LoginScreen(): React.ReactElement {
       const res = await auth.requestOtp(mobile.trim());
       setChallengeId(res.challengeId);
       setStep("otp");
+      if (res.otp) {
+        setCode(res.otp);
+      }
     } catch (e) {
       setError(messageOf(e));
     } finally {

@@ -19,12 +19,15 @@ async function rawPost(path: string, body: unknown): Promise<unknown> {
   });
   if (!res.ok) {
     let problem: Problem | undefined;
+    let rawText = "";
     try {
-      problem = (await res.json()) as Problem;
+      rawText = await res.text();
+      problem = JSON.parse(rawText) as Problem;
     } catch {
       problem = undefined;
     }
-    throw new ApiError(res.status, problem?.detail || problem?.title || "Auth request failed", problem);
+    const message = problem?.detail || problem?.title || (rawText ? `Status ${res.status}: ${rawText.substring(0, 100)}` : `Status ${res.status}`);
+    throw new ApiError(res.status, message, problem);
   }
   if (res.status === 204) return undefined;
   return res.json();

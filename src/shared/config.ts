@@ -11,6 +11,9 @@ function resolveBaseUrl(): string {
     return fromEnv.replace(/\/$/, "");
   }
   if (Platform.OS === "web" && typeof window !== "undefined") {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return "http://localhost:8080";
+    }
     return window.location.origin;
   }
   // Native dev default (Android emulator maps host loopback to 10.0.2.2; adjust per environment).

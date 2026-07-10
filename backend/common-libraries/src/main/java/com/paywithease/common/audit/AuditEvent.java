@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Append-only audit event. The application DB role has no UPDATE/DELETE on this table (ADR-0006):
@@ -16,13 +18,13 @@ import java.time.Instant;
 public class AuditEvent {
 
   @Id
-  @Column(length = 26, nullable = false)
+  @Column(columnDefinition = "char(26)", nullable = false)
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
-  @Column(name = "actor_id", length = 26)
+  @Column(name = "actor_id", columnDefinition = "char(26)")
   private String actorId;
 
   @Column(name = "event_type", nullable = false)
@@ -31,7 +33,7 @@ public class AuditEvent {
   @Column(name = "entity_type")
   private String entityType;
 
-  @Column(name = "entity_id", length = 26)
+  @Column(name = "entity_id", columnDefinition = "char(26)")
   private String entityId;
 
   @Column(name = "correlation_id")
@@ -40,6 +42,7 @@ public class AuditEvent {
   @Column(name = "occurred_at", nullable = false)
   private Instant occurredAt;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "data", columnDefinition = "jsonb", nullable = false)
   private String data;
 

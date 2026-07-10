@@ -65,8 +65,14 @@ public class OtpService {
     this.logOtpForDev = logOtpForDev;
   }
 
-  /** Issues an OTP for a mobile+purpose. Returns the TTL in seconds. Throws if rate-limited. */
-  public long request(String rawMobile, String purpose) {
+  public record RequestResult(long ttl, String otp) {}
+
+  public boolean isLogOtpForDev() {
+    return logOtpForDev;
+  }
+
+  /** Issues an OTP for a mobile+purpose. Returns the request result. Throws if rate-limited. */
+  public RequestResult request(String rawMobile, String purpose) {
     String mobileHash = blindIndex.hash(MobileNumber.of(rawMobile).value());
     enforceRateLimit(mobileHash);
 
@@ -80,7 +86,7 @@ public class OtpService {
     if (logOtpForDev) {
       log.debug("DEV OTP for purpose={} = {} (not logged in production)", purpose, otp);
     }
-    return ttl.getSeconds();
+    return new RequestResult(ttl.getSeconds(), otp);
   }
 
   /**

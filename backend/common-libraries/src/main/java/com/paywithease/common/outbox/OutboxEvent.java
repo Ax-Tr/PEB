@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Transactional outbox row. Written in the SAME database transaction as the state change; a relay
@@ -34,9 +36,11 @@ public class OutboxEvent {
   @Column(name = "tenant_id", length = 26, nullable = false)
   private String tenantId;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "payload", columnDefinition = "jsonb", nullable = false)
   private String payload;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "headers", columnDefinition = "jsonb", nullable = false)
   private String headers;
 

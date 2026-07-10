@@ -3,13 +3,22 @@ spring:
   config:
     activate:
       on-profile: local
+  main:
+    allow-circular-references: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/identity_db
+    url: jdbc:postgresql://localhost:5433/identity_db?stringtype=unspecified
     username: peb
     password: peb
+  jpa:
+    hibernate:
+      ddl-auto: none
   data:
     redis:
       host: localhost
       port: 6379
   kafka:
     bootstrap-servers: localhost:19092
+
+logging:
+  level:
+    com.paywithease: DEBUG

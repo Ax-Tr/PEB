@@ -25,11 +25,25 @@ public class CorrelationGlobalFilter implements GlobalFilter, Ordered {
     String correlationId =
         (existing == null || existing.isBlank()) ? UUID.randomUUID().toString() : existing;
 
-    ServerHttpRequest mutated =
-        exchange.getRequest().mutate().header(CORRELATION_HEADER, correlationId).build();
-    exchange.getResponse().getHeaders().set(CORRELATION_HEADER, correlationId);
+    org.springframework.http.server.reactive.ServerHttpRequest decorator =
+        new org.springframework.http.server.reactive.ServerHttpRequestDecorator(exchange.getRequest()) {
+          private org.springframework.http.HttpHeaders headers;
 
-    return chain.filter(exchange.mutate().request(mutated).build());
+          @Override
+          public org.springframework.http.HttpHeaders getHeaders() {
+            if (headers == null) {
+              headers = new org.springframework.http.HttpHeaders();
+              headers.putAll(super.getHeaders());
+              headers.set(CORRELATION_HEADER, correlationId);
+            }
+            return headers;
+          }
+        };
+
+    ServerWebExchange mutatedExchange = exchange.mutate().request(decorator).build();
+    mutatedExchange.getResponse().getHeaders().set(CORRELATION_HEADER, correlationId);
+
+    return chain.filter(mutatedExchange);
   }
 
   @Override

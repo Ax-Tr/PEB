@@ -43,7 +43,7 @@ class OtpServiceTest {
   @Test
   void requestStoresOtpAndAudits() {
     when(valueOps.increment(anyString())).thenReturn(1L); // rate-limit counter
-    long ttl = otp.request("9876543210", "LOGIN");
+    long ttl = otp.request("9876543210", "LOGIN").ttl();
     assertThat(ttl).isEqualTo(300);
     verify(valueOps).set(anyString(), anyString(), any(java.time.Duration.class));
     verify(auditRepository).save(any(OtpAudit.class));

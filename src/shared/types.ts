@@ -17,11 +17,14 @@ export interface Problem {
 export interface OtpRequestResult {
   challengeId: string;
   expiresInSeconds: number;
+  otp?: string;
 }
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
   expiresInSeconds: number;
+  tenantId: string | null;
+  newUser: boolean;
 }
 
 // --- Analytics (analytics-service) ---

@@ -3,7 +3,6 @@ package com.paywithease.common.config;
 import com.paywithease.common.security.AesGcmCipher;
 import com.paywithease.common.security.BlindIndex;
 import com.paywithease.common.security.FieldCrypto;
-import jakarta.annotation.PostConstruct;
 import java.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +48,5 @@ public class SecurityCryptoConfig {
       log.warn("SECURITY: using the built-in DEV blind-index key. Override before deployment.");
     }
     return new BlindIndex(Base64.getDecoder().decode(blindKeyBase64));
-  }
-
-  @PostConstruct
-  void ensureCryptoReady() {
-    // Force cipher init even if no entity has been loaded yet.
-    fieldCipher();
   }
 }

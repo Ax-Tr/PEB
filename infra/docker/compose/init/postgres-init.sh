@@ -6,7 +6,7 @@ set -e
 DBS="identity_db tenant_db customer_db vendor_db employee_db product_db \
 payment_db payout_db ingestion_db ledger_db invoice_db purchase_db \
 installment_db commitment_db notification_db ocr_db reconciliation_db compliance_db \
-audit_db ca_collab_db ai_db rules_db"
+audit_db ca_collab_db ai_db rules_db analytics_db"
 
 for db in $DBS; do
   echo "Creating database: $db"

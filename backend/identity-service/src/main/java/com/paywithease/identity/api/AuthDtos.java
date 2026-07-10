@@ -41,4 +41,6 @@ public final class AuthDtos {
 
   public record SessionDto(
       String id, String deviceId, String status, Instant issuedAt, Instant expiresAt) {}
+
+  public record LinkTenantRequest(@NotBlank @Size(max = 26) String tenantId) {}
 }

@@ -27,7 +27,10 @@ public class AuditWriter {
   @Transactional(propagation = Propagation.MANDATORY)
   public String record(String eventType, String entityType, String entityId, Map<String, ?> data) {
     var principal = TenantContext.current().orElse(null);
-    String tenantId = principal != null ? principal.tenantId() : null;
+    String tenantId =
+        (principal != null && principal.tenantId() != null)
+            ? principal.tenantId()
+            : "00000000000000000000000000";
     String actorId = principal != null ? principal.actorId() : null;
     String correlationId = principal != null ? principal.correlationId() : null;
     try {
