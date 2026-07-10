@@ -43,8 +43,10 @@ yarn-error.*
 # --- Java / Gradle backend ---
 .gradle/
 **/build/
+**/bin/
 !gradle-wrapper.jar
 !**/src/**/build/
+!**/src/**/bin/
 build-logic/.gradle/
 *.class
 *.log
