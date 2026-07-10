@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 
 /**
  * Stateless resource-server security. Auth entrypoints (OTP request/verify, token refresh) and the
@@ -42,13 +43,17 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(request -> {
-          var config = new org.springframework.web.cors.CorsConfiguration();
-          config.setAllowedOrigins(List.of("*"));
-          config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-          config.setAllowedHeaders(List.of("*"));
-          return config;
-        }))
+    http.cors(
+            cors ->
+                cors.configurationSource(
+                    request -> {
+                      var config = new CorsConfiguration();
+                      config.setAllowedOrigins(List.of("*"));
+                      config.setAllowedMethods(
+                          List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                      config.setAllowedHeaders(List.of("*"));
+                      return config;
+                    }))
         .csrf(csrf -> csrf.disable())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(

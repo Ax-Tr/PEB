@@ -22,9 +22,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 /**
  * Signing material for access tokens. Identity is the token issuer and also validates its own
  * tokens as a resource server; the gateway validates via the published JWKS. In production the RSA
- * key is KMS/Vault-managed and rotated. For local dev the key is persisted to a file in the
- * build directory so restarts don't invalidate existing tokens. The private key never leaves
- * this service; only the public JWK is exposed.
+ * key is KMS/Vault-managed and rotated. For local dev the key is persisted to a file in the build
+ * directory so restarts don't invalidate existing tokens. The private key never leaves this
+ * service; only the public JWK is exposed.
  */
 @Configuration
 public class JwtConfig {
@@ -48,7 +48,10 @@ public class JwtConfig {
           return loaded;
         }
       } catch (Exception e) {
-        log.warn("IDENTITY: failed to load dev key from {}; generating a new one. Cause: {}", DEV_KEY_FILE, e.getMessage());
+        log.warn(
+            "IDENTITY: failed to load dev key from {}; generating a new one. Cause: {}",
+            DEV_KEY_FILE,
+            e.getMessage());
       }
     }
 
@@ -58,10 +61,11 @@ public class JwtConfig {
     KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
     generator.initialize(2048);
     KeyPair pair = generator.generateKeyPair();
-    RSAKey key = new RSAKey.Builder((RSAPublicKey) pair.getPublic())
-        .privateKey(pair.getPrivate())
-        .keyID(KEY_ID)
-        .build();
+    RSAKey key =
+        new RSAKey.Builder((RSAPublicKey) pair.getPublic())
+            .privateKey(pair.getPrivate())
+            .keyID(KEY_ID)
+            .build();
 
     // Persist for subsequent restarts
     keyFile.getParentFile().mkdirs();
@@ -90,5 +94,3 @@ public class JwtConfig {
     return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
   }
 }
-
-

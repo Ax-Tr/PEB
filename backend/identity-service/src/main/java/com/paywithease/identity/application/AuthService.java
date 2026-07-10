@@ -187,9 +187,9 @@ public class AuthService {
   }
 
   /**
-   * Links a newly-created business (tenantId) to the user record in the identity DB. Must only
-   * be called by the user themselves (validated by the caller via JWT subject). The next token
-   * refresh will embed the tenantId in the JWT and unlock all tenant-scoped APIs.
+   * Links a newly-created business (tenantId) to the user record in the identity DB. Must only be
+   * called by the user themselves (validated by the caller via JWT subject). The next token refresh
+   * will embed the tenantId in the JWT and unlock all tenant-scoped APIs.
    */
   @Transactional
   public void linkTenant(String userId, String tenantId) {
