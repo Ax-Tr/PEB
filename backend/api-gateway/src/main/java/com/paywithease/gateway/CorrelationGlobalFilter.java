@@ -4,7 +4,9 @@ import java.util.UUID;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -25,14 +27,14 @@ public class CorrelationGlobalFilter implements GlobalFilter, Ordered {
     String correlationId =
         (existing == null || existing.isBlank()) ? UUID.randomUUID().toString() : existing;
 
-    org.springframework.http.server.reactive.ServerHttpRequest decorator =
-        new org.springframework.http.server.reactive.ServerHttpRequestDecorator(exchange.getRequest()) {
-          private org.springframework.http.HttpHeaders headers;
+    ServerHttpRequest decorator =
+        new ServerHttpRequestDecorator(exchange.getRequest()) {
+          private HttpHeaders headers;
 
           @Override
-          public org.springframework.http.HttpHeaders getHeaders() {
+          public HttpHeaders getHeaders() {
             if (headers == null) {
-              headers = new org.springframework.http.HttpHeaders();
+              headers = new HttpHeaders();
               headers.putAll(super.getHeaders());
               headers.set(CORRELATION_HEADER, correlationId);
             }

@@ -3,9 +3,13 @@ package com.paywithease.gateway;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 /**
  * Edge authentication. The gateway validates access tokens (JWKS published by identity-service) and
@@ -30,26 +34,30 @@ public class GatewaySecurityConfig {
   };
 
   @Bean
-  public org.springframework.web.cors.reactive.CorsConfigurationSource corsConfigurationSource() {
-    org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
     configuration.addAllowedOriginPattern("*");
     configuration.addAllowedMethod("*");
     configuration.addAllowedHeader("*");
     configuration.setAllowCredentials(false);
-    
-    org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource();
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
   }
 
   @Bean
   public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-    http.cors(org.springframework.security.config.Customizer.withDefaults())
+    http.cors(Customizer.withDefaults())
         .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .authorizeExchange(ex -> ex
-            .pathMatchers(HttpMethod.OPTIONS).permitAll()
-            .pathMatchers(PUBLIC).permitAll()
-            .anyExchange().authenticated())
+        .authorizeExchange(
+            ex ->
+                ex.pathMatchers(HttpMethod.OPTIONS)
+                    .permitAll()
+                    .pathMatchers(PUBLIC)
+                    .permitAll()
+                    .anyExchange()
+                    .authenticated())
         .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> {}));
     return http.build();
   }
