@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A refresh-token session. Refresh tokens rotate: each use marks the old row {@code ROTATED} and
@@ -23,18 +25,23 @@ public class UserSession {
   }
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)")
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "user_id", columnDefinition = "char(26)", nullable = false)
   private String userId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "device_id", columnDefinition = "char(26)")
   private String deviceId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "refresh_token_hash", columnDefinition = "char(64)", nullable = false)
   private String refreshTokenHash;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "family_id", columnDefinition = "char(26)", nullable = false)
   private String familyId;
 

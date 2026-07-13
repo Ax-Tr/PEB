@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A person who can authenticate. Identified by mobile (encrypted at rest, looked up by blind
@@ -18,9 +20,11 @@ import java.time.Instant;
 public class User {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)")
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "char(26)")
   private String tenantId;
 
@@ -28,6 +32,7 @@ public class User {
   @Column(name = "mobile_enc", nullable = false)
   private String mobile;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "mobile_hash", columnDefinition = "char(64)", nullable = false)
   private String mobileHash;
 

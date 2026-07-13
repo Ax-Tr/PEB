@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A system role (OWNER, CASHIER, ...). Authorities are derived from role name + permissions. */
 @Entity
@@ -11,6 +13,7 @@ import jakarta.persistence.Table;
 public class Role {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)")
   private String id;
 

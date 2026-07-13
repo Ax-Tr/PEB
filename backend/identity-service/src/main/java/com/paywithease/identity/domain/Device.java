@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A device bound to a user (device binding for suspicious-login detection & step-up). */
 @Entity
@@ -12,12 +14,15 @@ import java.time.Instant;
 public class Device {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)")
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "user_id", columnDefinition = "char(26)", nullable = false)
   private String userId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "device_hash", columnDefinition = "char(64)", nullable = false)
   private String deviceHash;
 

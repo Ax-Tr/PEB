@@ -10,6 +10,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Durable idempotency record for money/ledger mutations. Unique on {@code (tenantId, key)}; a
@@ -28,6 +30,7 @@ public class IdempotencyKey {
   }
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 

@@ -18,12 +18,15 @@ import org.hibernate.type.SqlTypes;
 public class AuditEvent {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)", nullable = false)
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "actor_id", columnDefinition = "char(26)")
   private String actorId;
 
@@ -33,6 +36,7 @@ public class AuditEvent {
   @Column(name = "entity_type")
   private String entityType;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "entity_id", columnDefinition = "char(26)")
   private String entityId;
 

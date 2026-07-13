@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** DPDP consent ledger entry: who consented to what purpose/notice-version and when. */
 @Entity
@@ -12,9 +14,11 @@ import java.time.Instant;
 public class DataConsentRecord {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "char(26)")
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "user_id", columnDefinition = "char(26)", nullable = false)
   private String userId;
 

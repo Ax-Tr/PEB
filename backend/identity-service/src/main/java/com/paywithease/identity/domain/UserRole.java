@@ -8,6 +8,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Grant of a role to a user (optionally scoped to a tenant/business). */
 @Entity
@@ -16,19 +18,23 @@ import java.util.Objects;
 public class UserRole {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "user_id", columnDefinition = "char(26)")
   private String userId;
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "role_id", columnDefinition = "char(26)")
   private String roleId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "granted_at", nullable = false)
   private Instant grantedAt;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "granted_by", columnDefinition = "char(26)")
   private String grantedBy;
 
