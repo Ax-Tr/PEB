@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A Data Subject Request governed by a small state machine: RECEIVED → VERIFYING → IN_PROGRESS →
@@ -22,10 +24,12 @@ import java.time.Instant;
 public class DsrRequest {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
   @Column(nullable = false)
@@ -34,7 +38,8 @@ public class DsrRequest {
   @Column(nullable = false)
   private String status;
 
-  @Column(name = "subject_ref", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "subject_ref", columnDefinition = "char(26)")
   private String subjectRef;
 
   @Convert(converter = EncryptedStringConverter.class)
@@ -43,6 +48,7 @@ public class DsrRequest {
 
   @Column private String details;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "erasure_plan", columnDefinition = "jsonb")
   private String erasurePlan;
 
@@ -64,7 +70,8 @@ public class DsrRequest {
   @Column(name = "completed_at")
   private Instant completedAt;
 
-  @Column(name = "handled_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "handled_by", columnDefinition = "char(26)")
   private String handledBy;
 
   @Version private long version;

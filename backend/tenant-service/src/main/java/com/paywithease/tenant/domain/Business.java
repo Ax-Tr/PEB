@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A business/tenant. {@code id} is the canonical tenant_id used across all services. */
 @Entity
@@ -15,10 +17,12 @@ import java.time.Instant;
 public class Business {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "owner_user_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "owner_user_id", columnDefinition = "char(26)", nullable = false)
   private String ownerUserId;
 
   @Column(name = "legal_name", nullable = false)
@@ -34,7 +38,8 @@ public class Business {
   @Column(name = "gstin_enc")
   private String gstin;
 
-  @Column(name = "gstin_hash", length = 64)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "gstin_hash", columnDefinition = "char(64)")
   private String gstinHash;
 
   @Convert(converter = EncryptedStringConverter.class)
@@ -43,7 +48,8 @@ public class Business {
 
   private String udyam;
 
-  @Column(name = "state_code", length = 2, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "state_code", columnDefinition = "char(2)", nullable = false)
   private String stateCode;
 
   @Column(nullable = false)

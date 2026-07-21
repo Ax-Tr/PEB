@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** GST/TDS posture for a business. */
 @Entity
@@ -13,7 +15,8 @@ import java.time.Instant;
 public class BusinessTaxProfile {
 
   @Id
-  @Column(name = "tenant_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "gst_registered", nullable = false)
@@ -25,7 +28,8 @@ public class BusinessTaxProfile {
   @Column(name = "reverse_charge_enabled", nullable = false)
   private boolean reverseChargeEnabled;
 
-  @Column(name = "default_place_of_supply", length = 2)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "default_place_of_supply", columnDefinition = "char(2)")
   private String defaultPlaceOfSupply;
 
   @Column(name = "tds_applicable", nullable = false)

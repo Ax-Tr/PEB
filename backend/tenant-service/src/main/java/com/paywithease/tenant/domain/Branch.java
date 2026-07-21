@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A branch/location of a business. */
 @Entity
@@ -14,16 +16,19 @@ import java.time.Instant;
 public class Branch {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", columnDefinition = "char(26)", nullable = false)
   private String tenantId;
 
   @Column(nullable = false)
   private String name;
 
-  @Column(name = "state_code", length = 2, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "state_code", columnDefinition = "char(2)", nullable = false)
   private String stateCode;
 
   private String address;

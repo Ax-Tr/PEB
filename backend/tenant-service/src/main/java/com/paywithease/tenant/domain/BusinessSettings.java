@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Invoice/tax/display settings for a business. */
 @Entity
@@ -15,7 +17,8 @@ import java.time.Instant;
 public class BusinessSettings {
 
   @Id
-  @Column(name = "tenant_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "invoice_prefix", nullable = false)
@@ -31,7 +34,8 @@ public class BusinessSettings {
   @Column(name = "logo_url")
   private String logoUrl;
 
-  @Column(nullable = false, length = 3)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(nullable = false, columnDefinition = "char(3)")
   private String currency;
 
   @Column(name = "financial_year_start_month", nullable = false)
