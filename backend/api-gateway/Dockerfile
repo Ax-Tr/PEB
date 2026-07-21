@@ -1,12 +1,9 @@
-# Multi-stage build → distroless runtime (non-root).
-FROM eclipse-temurin:21-jdk AS build
-WORKDIR /workspace
-COPY . .
-RUN ./gradlew :api-gateway:bootJar --no-daemon
-
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S peb && adduser -S peb -G peb
 WORKDIR /app
-COPY --from=build /workspace/api-gateway/build/libs/api-gateway.jar app.jar
+COPY api-gateway/build/libs/*.jar app.jar
+USER peb
 EXPOSE 8080
-USER nonroot
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

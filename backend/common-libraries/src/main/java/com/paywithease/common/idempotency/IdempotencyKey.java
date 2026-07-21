@@ -48,6 +48,7 @@ public class IdempotencyKey {
   @Column(name = "status", nullable = false)
   private Status status;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "response", columnDefinition = "jsonb")
   private String response;
 

@@ -15,10 +15,10 @@ import java.time.Instant;
 public class Customer {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
   @Column(nullable = false)
@@ -28,7 +28,7 @@ public class Customer {
   @Column(name = "mobile_enc", nullable = false)
   private String mobile;
 
-  @Column(name = "mobile_hash", length = 64, nullable = false)
+  @Column(name = "mobile_hash", columnDefinition = "bpchar", length = 64, nullable = false)
   private String mobileHash;
 
   @Convert(converter = EncryptedStringConverter.class)

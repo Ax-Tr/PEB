@@ -37,11 +37,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build service images
-        run: echo "docker buildx build per module -> push to registry with tag ${{ github.ref_name }}"
+        run: |
+          TAG=${{ github.ref_name }}
+          for svc in api-gateway identity-service business-service finance-service; do
+            docker buildx build -f backend/$svc/Dockerfile -t ghcr.io/${{ github.repository }}/$svc:$TAG backend/
+          done
       - name: Scan images (Trivy, fail on HIGH/CRITICAL)
-        run: echo "trivy image --exit-code 1 --severity HIGH,CRITICAL <each image>"
+        run: |
+          TAG=${{ github.ref_name }}
+          for svc in api-gateway identity-service business-service finance-service; do
+            trivy image --exit-code 1 --severity HIGH,CRITICAL ghcr.io/${{ github.repository }}/$svc:$TAG
+          done
+      - name: Push images
+        run: |
+          TAG=${{ github.ref_name }}
+          for svc in api-gateway identity-service business-service finance-service; do
+            docker push ghcr.io/${{ github.repository }}/$svc:$TAG
+          done
       - name: Generate SBOM
-        run: echo "syft <images> -o spdx-json > sbom-${{ github.ref_name }}.json"
+        run: |
+          TAG=${{ github.ref_name }}
+          for svc in api-gateway identity-service business-service finance-service; do
+            syft ghcr.io/${{ github.repository }}/$svc:$TAG -o spdx-json > sbom-$svc-$TAG.json
+          done
 
   deploy-green:
     name: deploy green + expand migrations

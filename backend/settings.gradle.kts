@@ -20,32 +20,39 @@ dependencyResolutionManagement {
 
 rootProject.name = "peb-backend"
 
-// Shared library module (not a deployable service)
+// Shared library module
 include("common-libraries")
 
-// Deployable microservices (Sprint 0 ships gateway + identity; others added per sprint)
-include("api-gateway")
-include("identity-service")
+// Identity domain submodules
 include("tenant-service")
+include("privacy-service")
+
+// Business domain submodules
 include("customer-service")
 include("vendor-service")
 include("employee-payroll-service")
 include("product-service")
-include("payment-collection-service")
 include("invoice-gst-service")
-include("accounting-ledger-service")
 include("purchase-expense-service")
-include("payout-service")
-include("installment-service")
-include("commitment-service")           // Sprint 20: payment promises, due dates, broken-promise tracking
+include("commitment-service")
 include("notification-service")
+include("ocr-document-service")
+include("ca-collaboration-service")
+
+// Finance domain submodules
+include("payment-collection-service")
+include("payout-service")
+include("accounting-ledger-service")
+include("installment-service")
 include("transaction-ingestion-service")
 include("reconciliation-service")
 include("compliance-report-service")
-include("analytics-service")            // Sprint 13
-include("audit-evidence-service")       // Sprint 14
-include("ca-collaboration-service")     // Sprint 14
-include("ai-automation-service")        // Sprint 15
-include("privacy-service")              // Sprint 16 (DPDP data-rights: access/erasure/anonymization/grievance)
-include("ocr-document-service")         // Sprint 22: secure OCR document capture and bank-detail review
-// include("rules-engine-service")      // cross-cutting
+include("analytics-service")
+include("audit-evidence-service")
+include("ai-automation-service")
+
+// Deployable services — consolidated 4-service architecture
+include("api-gateway")
+include("identity-service")
+include("business-service")
+include("finance-service")

@@ -14,13 +14,13 @@ import java.time.Instant;
 public class CustomerContact {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
-  @Column(name = "customer_id", length = 26, nullable = false)
+  @Column(name = "customer_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String customerId;
 
   @Column(nullable = false)

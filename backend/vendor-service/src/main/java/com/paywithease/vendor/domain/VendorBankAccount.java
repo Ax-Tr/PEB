@@ -23,20 +23,20 @@ import java.time.Instant;
 public class VendorBankAccount {
 
   @Id
-  @Column(length = 26)
+  @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
-  @Column(name = "vendor_id", length = 26, nullable = false)
+  @Column(name = "vendor_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String vendorId;
 
   @Convert(converter = EncryptedStringConverter.class)
   @Column(name = "account_number_enc", nullable = false)
   private String accountNumber;
 
-  @Column(name = "account_number_hash", length = 64, nullable = false)
+  @Column(name = "account_number_hash", columnDefinition = "bpchar", length = 64, nullable = false)
   private String accountNumberHash;
 
   @Convert(converter = EncryptedStringConverter.class)
@@ -61,7 +61,7 @@ public class VendorBankAccount {
   @Column(nullable = false)
   private BankAccountSource source;
 
-  @Column(name = "reviewed_by", length = 26)
+  @Column(name = "reviewed_by", columnDefinition = "bpchar", length = 26)
   private String reviewedBy;
 
   @Column(name = "reviewed_at")

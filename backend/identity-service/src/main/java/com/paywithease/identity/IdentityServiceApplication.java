@@ -13,9 +13,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * <p>Scans the shared {@code com.paywithease.common} package so the correlation filter, error
  * handler, outbox/audit writers, and beans are picked up alongside this service's own components.
  */
-@SpringBootApplication(scanBasePackages = "com.paywithease")
-@EntityScan(basePackages = "com.paywithease")
-@EnableJpaRepositories(basePackages = "com.paywithease")
+@SpringBootApplication(scanBasePackages = {"com.paywithease.identity", "com.paywithease.common"})
+@EntityScan(basePackages = {"com.paywithease.identity", "com.paywithease.common"})
+@EnableJpaRepositories(basePackages = {"com.paywithease.identity", "com.paywithease.common"})
 public class IdentityServiceApplication {
 
   public static void main(String[] args) {

@@ -1,0 +1,12 @@
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# Git
+.git/
+.gitignore
+
+# Misc
+**/*.log
+**/node_modules/

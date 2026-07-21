@@ -19,6 +19,28 @@ public class FallbackController {
   @GetMapping("/identity")
   @PostMapping("/identity")
   public ResponseEntity<Map<String, Object>> identityFallback() {
+    return serviceUnavailable("identity-service");
+  }
+
+  @GetMapping("/business")
+  @PostMapping("/business")
+  public ResponseEntity<Map<String, Object>> businessFallback() {
+    return serviceUnavailable("business-service");
+  }
+
+  @GetMapping("/finance")
+  @PostMapping("/finance")
+  public ResponseEntity<Map<String, Object>> financeFallback() {
+    return serviceUnavailable("finance-service");
+  }
+
+  @GetMapping("/analytics")
+  @PostMapping("/analytics")
+  public ResponseEntity<Map<String, Object>> analyticsFallback() {
+    return serviceUnavailable("analytics-service");
+  }
+
+  private static ResponseEntity<Map<String, Object>> serviceUnavailable(String service) {
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .contentType(MediaType.APPLICATION_PROBLEM_JSON)
         .body(
@@ -26,7 +48,7 @@ public class FallbackController {
                 "type", "https://errors.paywithease.com/SERVICE_UNAVAILABLE",
                 "title", "SERVICE_UNAVAILABLE",
                 "status", 503,
-                "detail", "identity-service is temporarily unavailable, please retry",
+                "detail", service + " is temporarily unavailable, please retry",
                 "code", "SERVICE_UNAVAILABLE"));
   }
 }

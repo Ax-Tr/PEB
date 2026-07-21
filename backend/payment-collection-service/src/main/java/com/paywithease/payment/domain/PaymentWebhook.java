@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Append-only inbound webhook record. Unique on {@code (provider, providerEventId)} so a
@@ -36,6 +38,7 @@ public class PaymentWebhook {
 
   private String reference;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "raw_payload", columnDefinition = "jsonb", nullable = false)
   private String rawPayload;
 

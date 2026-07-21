@@ -19,13 +19,13 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
       default-filters:
-        # Strip the routing prefix before forwarding to the service.
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
       routes:
+        # ── identity-service (auth, RBAC, tenant/business, privacy) ──
         - id: identity-service
           uri: ${IDENTITY_URI:http://localhost:8081}
           predicates:
-            - Path=/api/v1/auth/**,/api/v1/users/**,/api/v1/roles/**,/api/v1/ping
+            - Path=/api/v1/auth/**,/api/v1/users/**,/api/v1/roles/**,/api/v1/businesses/**,/api/v1/privacy/**,/api/v1/ping
           filters:
             - name: RequestRateLimiter
               args:
@@ -35,99 +35,40 @@ spring:
               args:
                 name: identityCb
                 fallbackUri: forward:/fallback/identity
-        - id: tenant-service
-          uri: ${TENANT_URI:http://localhost:8082}
+
+        # ── business-service (customer, vendor, employee, product, invoice, purchase, commitment, notification, OCR, CA) ──
+        - id: business-service
+          uri: ${BUSINESS_URI:http://localhost:8082}
           predicates:
-            - Path=/api/v1/businesses/**
+            - Path=/api/v1/customers/**,/api/v1/vendors/**,/api/v1/products/**,/api/v1/hsn-sac/**,/api/v1/employees/**,/api/v1/salary-runs/**,/api/v1/invoices/**,/api/v1/gst/**,/api/v1/purchase-bills/**,/api/v1/expenses/**,/api/v1/purchase-register/**,/api/v1/commitments/**,/api/v1/notifications/**,/api/v1/notification-templates/**,/api/v1/reminders/**,/api/v1/webhooks/notifications/**,/api/v1/documents/**,/api/v1/ocr/**,/api/v1/collaboration/**
           filters:
             - name: CircuitBreaker
               args:
-                name: tenantCb
-                fallbackUri: forward:/fallback/identity
-        - id: customer-service
-          uri: ${CUSTOMER_URI:http://localhost:8083}
+                name: businessCb
+                fallbackUri: forward:/fallback/business
+
+        # ── finance-service (payment, payout, ledger, installment, ingestion, reconciliation, compliance, analytics, audit, AI) ──
+        - id: finance-service
+          uri: ${FINANCE_URI:http://localhost:8083}
           predicates:
-            - Path=/api/v1/customers/**
-        - id: vendor-service
-          uri: ${VENDOR_URI:http://localhost:8084}
-          predicates:
-            - Path=/api/v1/vendors/**
-        - id: product-service
-          uri: ${PRODUCT_URI:http://localhost:8085}
-          predicates:
-            - Path=/api/v1/products/**,/api/v1/hsn-sac/**
-        - id: employee-payroll-service
-          uri: ${EMPLOYEE_URI:http://localhost:8086}
-          predicates:
-            - Path=/api/v1/employees/**,/api/v1/salary-runs/**
-        - id: payment-collection-service
-          uri: ${PAYMENT_URI:http://localhost:8087}
-          predicates:
-            - Path=/api/v1/payment-requests/**,/api/v1/payments/**,/api/v1/webhooks/payments/**
-        - id: invoice-gst-service
-          uri: ${INVOICE_URI:http://localhost:8088}
-          predicates:
-            - Path=/api/v1/invoices/**,/api/v1/gst/**
-        - id: accounting-ledger-service
-          uri: ${LEDGER_URI:http://localhost:8089}
-          predicates:
-            - Path=/api/v1/chart-of-accounts/**,/api/v1/journals/**,/api/v1/ledgers/**,/api/v1/reports/**,/api/v1/periods/**
-        - id: purchase-expense-service
-          uri: ${PURCHASE_URI:http://localhost:8090}
-          predicates:
-            - Path=/api/v1/purchase-bills/**,/api/v1/expenses/**,/api/v1/purchase-register/**
-        - id: payout-service
-          uri: ${PAYOUT_URI:http://localhost:8091}
-          predicates:
-            - Path=/api/v1/payouts/**,/api/v1/beneficiaries/**
-        - id: installment-service
-          uri: ${INSTALLMENT_URI:http://localhost:8092}
-          predicates:
-            - Path=/api/v1/installments/**
-        - id: commitment-service
-          uri: ${COMMITMENT_URI:http://localhost:8102}
-          predicates:
-            - Path=/api/v1/commitments/**
-        - id: notification-service
-          uri: ${NOTIFICATION_URI:http://localhost:8093}
-          predicates:
-            - Path=/api/v1/notifications/**,/api/v1/notification-templates/**,/api/v1/reminders/**,/api/v1/webhooks/notifications/**
-        - id: transaction-ingestion-service
-          uri: ${INGESTION_URI:http://localhost:8094}
-          predicates:
-            - Path=/api/v1/bank-accounts/**,/api/v1/bank-transactions/**,/api/v1/cash-transactions/**
-        - id: reconciliation-service
-          uri: ${RECONCILIATION_URI:http://localhost:8095}
-          predicates:
-            - Path=/api/v1/reconciliation/**
-        - id: compliance-report-service
-          uri: ${COMPLIANCE_URI:http://localhost:8096}
-          predicates:
-            - Path=/api/v1/compliance/**
+            - Path=/api/v1/payment-requests/**,/api/v1/payments/**,/api/v1/webhooks/payments/**,/api/v1/payouts/**,/api/v1/beneficiaries/**,/api/v1/chart-of-accounts/**,/api/v1/journals/**,/api/v1/ledgers/**,/api/v1/reports/**,/api/v1/periods/**,/api/v1/installments/**,/api/v1/bank-accounts/**,/api/v1/bank-transactions/**,/api/v1/cash-transactions/**,/api/v1/reconciliation/**,/api/v1/compliance/**,/api/v1/audit/**,/api/v1/ai/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: financeCb
+                fallbackUri: forward:/fallback/finance
+
+        # ── analytics-service ──
         - id: analytics-service
           uri: ${ANALYTICS_URI:http://localhost:8097}
           predicates:
             - Path=/api/v1/analytics/**
-        - id: audit-evidence-service
-          uri: ${AUDIT_EVIDENCE_URI:http://localhost:8098}
-          predicates:
-            - Path=/api/v1/audit/**
-        - id: ca-collaboration-service
-          uri: ${CA_COLLABORATION_URI:http://localhost:8099}
-          predicates:
-            - Path=/api/v1/collaboration/**
-        - id: ai-automation-service
-          uri: ${AI_AUTOMATION_URI:http://localhost:8100}
-          predicates:
-            - Path=/api/v1/ai/**
-        - id: privacy-service
-          uri: ${PRIVACY_URI:http://localhost:8101}
-          predicates:
-            - Path=/api/v1/privacy/**
-        - id: ocr-document-service
-          uri: ${OCR_DOCUMENT_URI:http://localhost:8103}
-          predicates:
-            - Path=/api/v1/documents/**,/api/v1/ocr/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: analyticsCb
+                fallbackUri: forward:/fallback/analytics
+
       httpclient:
         connect-timeout: 2000
         response-timeout: 5s
@@ -150,12 +91,8 @@ springdoc:
   swagger-ui:
     enabled: false
 
-# Sprint 1 will add: JWT resource-server (JWKS from Keycloak), tenant-claim → X-Tenant-Id header,
-# and a KeyResolver bean for per-principal rate limiting.
-
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
-

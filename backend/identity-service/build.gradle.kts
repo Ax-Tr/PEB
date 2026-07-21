@@ -4,8 +4,10 @@ plugins {
 
 dependencies {
     implementation(project(":common-libraries"))
+    implementation(project(":tenant-service"))
+    implementation(project(":privacy-service"))
 
-    // Persistence + migrations (service owns identity_db)
+    // Persistence + migrations (service owns identity_db — includes identity, tenant, and privacy schemas)
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")

@@ -1,17 +1,15 @@
-#!/bin/sh
-# Creates one database per microservice (database-per-service, ADR-0001).
-# Runs automatically on first Postgres container start.
+#!/bin/bash
+# Creates the three consolidated databases inside the same Postgres instance.
+# Mounted as /docker-entrypoint-initdb.d/10-init-dbs.sh (runs once on first start).
+
 set -e
 
-DBS="identity_db tenant_db customer_db vendor_db employee_db product_db \
-payment_db payout_db ingestion_db ledger_db invoice_db purchase_db \
-installment_db commitment_db notification_db ocr_db reconciliation_db compliance_db \
-audit_db ca_collab_db ai_db rules_db analytics_db"
-
-for db in $DBS; do
+for db in identity_db business_db finance_db analytics_db; do
   echo "Creating database: $db"
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-    SELECT 'CREATE DATABASE $db'
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    SELECT 'CREATE DATABASE $db OWNER $POSTGRES_USER'
     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db')\gexec
 EOSQL
 done
+
+echo "All PEB databases created."

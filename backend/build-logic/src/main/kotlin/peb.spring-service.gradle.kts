@@ -28,10 +28,28 @@ dependencies {
     add("implementation", "io.micrometer:micrometer-registry-prometheus")
 }
 
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    archiveClassifier.set("")
+val deployableServices =
+    setOf("api-gateway", "identity-service", "business-service", "finance-service", "analytics-service")
+val isDeployable = project.name in deployableServices
+
+if (isDeployable) {
+    tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+        archiveClassifier.set("")
+        enabled = true
+    }
+    tasks.named<Jar>("jar") {
+        archiveClassifier.set("plain")
+        enabled = false
+    }
+} else {
+    tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+        archiveClassifier.set("boot")
+        enabled = false
+    }
+    tasks.named<Jar>("jar") {
+        archiveClassifier.set("")
+        enabled = true
+        exclude("db/migration/**")
+    }
 }
-tasks.named<Jar>("jar") {
-    archiveClassifier.set("plain")
-    enabled = false
-}
+
