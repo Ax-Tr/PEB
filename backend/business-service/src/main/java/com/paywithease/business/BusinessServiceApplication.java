@@ -15,54 +15,19 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication
 @ComponentScan(
-    basePackages = {
-      "com.paywithease.business",
-      "com.paywithease.common",
-      "com.paywithease.employee",
-      "com.paywithease.product",
-      "com.paywithease.invoice",
-      "com.paywithease.purchase",
-      "com.paywithease.commitment",
-      "com.paywithease.notification",
-      "com.paywithease.ocr",
-      "com.paywithease.cacollaboration"
-    },
+    basePackages = "com.paywithease",
     excludeFilters = {
       @ComponentScan.Filter(
           type = FilterType.REGEX,
           pattern =
-              "com\\.paywithease\\.(employee|product|invoice|purchase|commitment|notification|ocr|cacollaboration)\\.config\\.SecurityConfig"),
+              "com\\.paywithease\\.(customer|vendor|employee|product|invoice|purchase|commitment|notification|ocr|cacollaboration)\\.config\\.SecurityConfig"),
       @ComponentScan.Filter(
           type = FilterType.REGEX,
           pattern =
-              "com\\.paywithease\\.(employee|product|invoice|purchase|commitment|notification|ocr|cacollaboration)\\..*Application")
+              "com\\.paywithease\\.(customer|vendor|employee|product|invoice|purchase|commitment|notification|ocr|cacollaboration)\\..*Application")
     })
-@EntityScan(
-    basePackages = {
-      "com.paywithease.business",
-      "com.paywithease.common",
-      "com.paywithease.employee",
-      "com.paywithease.product",
-      "com.paywithease.invoice",
-      "com.paywithease.purchase",
-      "com.paywithease.commitment",
-      "com.paywithease.notification",
-      "com.paywithease.ocr",
-      "com.paywithease.cacollaboration"
-    })
-@EnableJpaRepositories(
-    basePackages = {
-      "com.paywithease.business",
-      "com.paywithease.common",
-      "com.paywithease.employee",
-      "com.paywithease.product",
-      "com.paywithease.invoice",
-      "com.paywithease.purchase",
-      "com.paywithease.commitment",
-      "com.paywithease.notification",
-      "com.paywithease.ocr",
-      "com.paywithease.cacollaboration"
-    })
+@EntityScan(basePackages = "com.paywithease")
+@EnableJpaRepositories(basePackages = "com.paywithease")
 public class BusinessServiceApplication {
 
   public static void main(String[] args) {
