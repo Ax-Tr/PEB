@@ -55,36 +55,22 @@ CREATE TABLE business_settings (
 );
 
 -- DPDP privacy tables (merged from privacy-service)
-CREATE TABLE data_access_requests (
-    id            char(26)    PRIMARY KEY,
-    tenant_id     char(26)    NOT NULL,
-    user_id       char(26)    NOT NULL,
-    request_type  text        NOT NULL,
-    status        text        NOT NULL DEFAULT 'PENDING',
-    created_at    timestamptz NOT NULL DEFAULT now(),
-    completed_at  timestamptz
+CREATE TABLE dsr_requests (
+    id                char(26)    PRIMARY KEY,
+    tenant_id         char(26)    NOT NULL,
+    type              text        NOT NULL,
+    status            text        NOT NULL,
+    subject_ref       char(26),
+    subject_email_enc text        NOT NULL,
+    details           text,
+    erasure_plan      jsonb,
+    resolution_note   text,
+    evidence_ref      text,
+    received_at       timestamptz NOT NULL,
+    due_at            timestamptz NOT NULL,
+    verified_at       timestamptz,
+    completed_at      timestamptz,
+    handled_by        char(26),
+    version           bigint      NOT NULL DEFAULT 0
 );
-CREATE INDEX ix_dar_tenant ON data_access_requests (tenant_id, status);
-
-CREATE TABLE erasure_requests (
-    id            char(26)    PRIMARY KEY,
-    tenant_id     char(26)    NOT NULL,
-    user_id       char(26)    NOT NULL,
-    scope         text        NOT NULL,
-    status        text        NOT NULL DEFAULT 'PENDING',
-    created_at    timestamptz NOT NULL DEFAULT now(),
-    completed_at  timestamptz
-);
-CREATE INDEX ix_erasure_tenant ON erasure_requests (tenant_id, status);
-
-CREATE TABLE grievance_tickets (
-    id            char(26)    PRIMARY KEY,
-    tenant_id     char(26)    NOT NULL,
-    user_id       char(26)    NOT NULL,
-    subject       text        NOT NULL,
-    description   text,
-    status        text        NOT NULL DEFAULT 'OPEN',
-    created_at    timestamptz NOT NULL DEFAULT now(),
-    resolved_at   timestamptz
-);
-CREATE INDEX ix_grievance_tenant ON grievance_tickets (tenant_id, status);
+CREATE INDEX ix_dsr_requests_tenant ON dsr_requests (tenant_id, status);
