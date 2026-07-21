@@ -277,7 +277,7 @@ export interface InvoiceLineInput {
   gstRate: number; // percent, e.g. 18
 }
 export interface CreateInvoiceRequest {
-  documentType: string; // "INVOICE"
+  documentType: string; // "TAX_INVOICE"
   supplyType: string; // "B2B" | "B2C"
   customerId?: string;
   customerName?: string;

@@ -48,7 +48,7 @@ export function InvoiceCreateScreen(): React.ReactElement {
       return;
     }
     create.mutate({
-      documentType: "INVOICE",
+      documentType: "TAX_INVOICE",
       supplyType,
       customerId: customer?.id,
       customerName: customer?.name,
