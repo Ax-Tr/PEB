@@ -15,17 +15,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @ComponentScan(
     basePackages = "com.paywithease",
-    excludeFilters =
-        {
-          @ComponentScan.Filter(
-              type = FilterType.REGEX,
-              pattern =
-                  "com\\.paywithease\\.(payment|payout|ledger|installment|ingestion|reconciliation|compliance|analytics|auditevidence|ai)\\.config\\.SecurityConfig"),
-          @ComponentScan.Filter(
-              type = FilterType.REGEX,
-              pattern =
-                  "com\\.paywithease\\.(payment|payout|ledger|installment|ingestion|reconciliation|compliance|analytics|auditevidence|ai)\\..*Application")
-        })
+    excludeFilters = {
+      @ComponentScan.Filter(
+          type = FilterType.REGEX,
+          pattern =
+              "com\\.paywithease\\.(payment|payout|ledger|installment|ingestion|reconciliation|compliance|analytics|auditevidence|ai)\\.config\\.SecurityConfig"),
+      @ComponentScan.Filter(
+          type = FilterType.REGEX,
+          pattern =
+              "com\\.paywithease\\.(payment|payout|ledger|installment|ingestion|reconciliation|compliance|analytics|auditevidence|ai)\\..*Application")
+    })
 @EntityScan(basePackages = "com.paywithease")
 @EnableJpaRepositories(basePackages = "com.paywithease")
 public class FinanceServiceApplication {
