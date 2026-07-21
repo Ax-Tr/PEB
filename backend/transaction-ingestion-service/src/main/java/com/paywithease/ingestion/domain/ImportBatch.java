@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Summary of one statement/feed import: how many rows were new vs. duplicates. */
 @Entity
@@ -12,13 +14,16 @@ import java.time.Instant;
 public class ImportBatch {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "bank_account_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "bank_account_id", length = 26, columnDefinition = "char(26)")
   private String bankAccountId;
 
   @Column(nullable = false)

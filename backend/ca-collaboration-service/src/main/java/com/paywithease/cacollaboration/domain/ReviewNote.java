@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** An append-only review comment left by a collaborator on some entity. */
 @Entity
@@ -12,19 +14,23 @@ import java.time.Instant;
 public class ReviewNote {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "entity_type", nullable = false)
   private String entityType;
 
-  @Column(name = "entity_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "entity_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String entityId;
 
-  @Column(name = "author_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "author_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String authorId;
 
   @Column(nullable = false)

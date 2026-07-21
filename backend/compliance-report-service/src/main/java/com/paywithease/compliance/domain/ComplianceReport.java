@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A generated compliance report governed by the {@link ComplianceStatus} lifecycle. Enforces the
@@ -19,10 +21,12 @@ import java.time.Instant;
 public class ComplianceReport {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -58,10 +62,12 @@ public class ComplianceReport {
   @Column(name = "generated_at", nullable = false)
   private Instant generatedAt;
 
-  @Column(name = "reviewed_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reviewed_by", length = 26, columnDefinition = "char(26)")
   private String reviewedBy;
 
-  @Column(name = "approved_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "approved_by", length = 26, columnDefinition = "char(26)")
   private String approvedBy;
 
   @Column(name = "filed_at")

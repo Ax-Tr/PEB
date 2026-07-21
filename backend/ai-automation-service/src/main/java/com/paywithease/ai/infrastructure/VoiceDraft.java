@@ -12,16 +12,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "voice_drafts")
 public class VoiceDraft {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Convert(converter = EncryptedStringConverter.class)
@@ -52,16 +56,19 @@ public class VoiceDraft {
   @Column(nullable = false)
   private boolean suspicious;
 
-  @Column(name = "materialized_ref", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "materialized_ref", length = 26, columnDefinition = "char(26)")
   private String materializedRef;
 
   @Column(name = "rejection_reason")
   private String rejectionReason;
 
-  @Column(name = "created_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, columnDefinition = "char(26)")
   private String createdBy;
 
-  @Column(name = "reviewed_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reviewed_by", length = 26, columnDefinition = "char(26)")
   private String reviewedBy;
 
   @Column(name = "created_at", nullable = false)

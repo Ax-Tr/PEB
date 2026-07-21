@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A proposed or confirmed pairing between an external and an internal item. */
 @Entity
@@ -15,16 +17,20 @@ import java.time.Instant;
 public class ReconMatch {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "external_item_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "external_item_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String externalItemId;
 
-  @Column(name = "internal_item_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "internal_item_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String internalItemId;
 
   @Column(nullable = false)
@@ -33,7 +39,8 @@ public class ReconMatch {
   @Column(nullable = false)
   private String status; // AUTO, SUGGESTED, CONFIRMED, REJECTED
 
-  @Column(name = "matched_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "matched_by", length = 26, columnDefinition = "char(26)")
   private String matchedBy;
 
   @Column(name = "created_at", nullable = false)

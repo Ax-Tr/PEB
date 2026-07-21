@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * An invitation for an external collaborator (accountant / CA / auditor). Access is governed by a
@@ -21,10 +23,12 @@ import java.time.Instant;
 public class CaInvite {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Convert(converter = EncryptedStringConverter.class)
@@ -37,10 +41,12 @@ public class CaInvite {
   @Column(nullable = false)
   private String status;
 
-  @Column(name = "linked_user_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "linked_user_id", length = 26, columnDefinition = "char(26)")
   private String linkedUserId;
 
-  @Column(name = "invited_by", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invited_by", length = 26, nullable = false, columnDefinition = "char(26)")
   private String invitedBy;
 
   @Column(name = "expires_at", nullable = false)

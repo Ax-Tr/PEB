@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A posted double-entry journal. Immutable once posted (no UPDATE/DELETE) — corrections are new
@@ -16,10 +18,12 @@ import java.time.LocalDate;
 public class JournalEntry {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "entry_date", nullable = false)
@@ -30,13 +34,16 @@ public class JournalEntry {
   @Column(name = "source_service")
   private String sourceService;
 
-  @Column(name = "source_event_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_event_id", length = 26, columnDefinition = "char(26)")
   private String sourceEventId;
 
-  @Column(name = "reversal_of", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reversal_of", length = 26, columnDefinition = "char(26)")
   private String reversalOf;
 
-  @Column(name = "period_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "period_id", length = 26, columnDefinition = "char(26)")
   private String periodId;
 
   @Column(nullable = false)
@@ -45,7 +52,8 @@ public class JournalEntry {
   @Column(name = "correlation_id")
   private String correlationId;
 
-  @Column(name = "created_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, columnDefinition = "char(26)")
   private String createdBy;
 
   @Column(name = "created_at", nullable = false)

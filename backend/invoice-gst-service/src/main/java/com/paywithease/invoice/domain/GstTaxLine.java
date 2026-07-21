@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Tax grouped by GST rate for an invoice — the shape used for GSTR summaries. Amounts are paise.
@@ -14,13 +16,16 @@ import java.math.BigDecimal;
 public class GstTaxLine {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "invoice_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invoice_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String invoiceId;
 
   @Column(name = "gst_rate", nullable = false, precision = 5, scale = 2)

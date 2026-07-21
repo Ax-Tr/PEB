@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** One employee's computed payslip line within a salary run. */
 @Entity
@@ -12,16 +14,20 @@ import jakarta.persistence.Table;
 public class SalaryRunLine {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "salary_run_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "salary_run_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String salaryRunId;
 
-  @Column(name = "employee_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "employee_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String employeeId;
 
   @Column(name = "gross_minor", nullable = false)
@@ -57,7 +63,8 @@ public class SalaryRunLine {
   @Column(name = "net_pay_minor", nullable = false)
   private long netPayMinor;
 
-  @Column(name = "payslip_document_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "payslip_document_id", length = 26, columnDefinition = "char(26)")
   private String payslipDocumentId;
 
   protected SalaryRunLine() {}

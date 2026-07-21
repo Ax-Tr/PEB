@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A payout to a beneficiary, guarded by maker-checker approval for high-risk/high-value cases. */
 @Entity
@@ -17,19 +19,23 @@ import java.time.Instant;
 public class Payout {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "party_type", nullable = false)
   private String partyType;
 
-  @Column(name = "party_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "party_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String partyId;
 
-  @Column(name = "beneficiary_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "beneficiary_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String beneficiaryId;
 
   @Column(name = "amount_minor", nullable = false)
@@ -53,7 +59,8 @@ public class Payout {
   @Column(name = "gateway_attempts", nullable = false)
   private int gatewayAttempts;
 
-  @Column(name = "created_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, columnDefinition = "char(26)")
   private String createdBy;
 
   @Column(name = "created_at", nullable = false)

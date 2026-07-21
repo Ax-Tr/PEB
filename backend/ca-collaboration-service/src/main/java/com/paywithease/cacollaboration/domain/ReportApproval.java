@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A maker-checker report approval. The requester and the approver must be different people, and a
@@ -18,25 +20,30 @@ import java.time.Instant;
 public class ReportApproval {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "report_type", nullable = false)
   private String reportType;
 
-  @Column(name = "report_ref", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "report_ref", length = 26, nullable = false, columnDefinition = "char(26)")
   private String reportRef;
 
   @Column(nullable = false)
   private String status;
 
-  @Column(name = "requested_by", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "requested_by", length = 26, nullable = false, columnDefinition = "char(26)")
   private String requestedBy;
 
-  @Column(name = "decided_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "decided_by", length = 26, columnDefinition = "char(26)")
   private String decidedBy;
 
   @Column(name = "decision_note")

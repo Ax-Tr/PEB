@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Cashflow projection (one row per confirmed cash movement). Inflows come from {@code
@@ -16,10 +18,12 @@ import java.time.LocalDate;
 public class FactCashMovement {
 
   @Id
-  @Column(name = "movement_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "movement_id", length = 26, columnDefinition = "char(26)")
   private String movementId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -28,10 +32,12 @@ public class FactCashMovement {
   @Column(nullable = false)
   private String source; // PAYMENT | PAYOUT
 
-  @Column(name = "counterparty_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "counterparty_id", length = 26, columnDefinition = "char(26)")
   private String counterpartyId;
 
-  @Column(name = "branch_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "branch_id", length = 26, columnDefinition = "char(26)")
   private String branchId;
 
   @Column(name = "occurred_on", nullable = false)

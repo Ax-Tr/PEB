@@ -6,22 +6,27 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "fact_commitments")
 public class FactCommitment {
 
   @Id
-  @Column(name = "commitment_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "commitment_id", length = 26, columnDefinition = "char(26)")
   private String commitmentId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "counterparty_type", nullable = false)
   private String counterpartyType;
 
-  @Column(name = "counterparty_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "counterparty_id", length = 26, columnDefinition = "char(26)")
   private String counterpartyId;
 
   @Column(name = "counterparty_name")

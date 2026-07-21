@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Append-only lock/reopen action log (maker-checker evidence, alongside audit_events). */
 @Entity
@@ -12,13 +14,16 @@ import java.time.Instant;
 public class MonthLock {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "period_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "period_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String periodId;
 
   @Column(nullable = false)
@@ -26,7 +31,8 @@ public class MonthLock {
 
   private String reason;
 
-  @Column(name = "actor_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "actor_id", length = 26, columnDefinition = "char(26)")
   private String actorId;
 
   @Column(name = "created_at", nullable = false)

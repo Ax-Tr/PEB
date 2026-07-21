@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.Collection;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Month-end close checklist. Its purpose is to gate the month lock: a period must not be locked
@@ -17,10 +19,12 @@ import java.util.Collection;
 public class CloseChecklist {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "period_year", nullable = false)
@@ -29,7 +33,8 @@ public class CloseChecklist {
   @Column(name = "period_month", nullable = false)
   private int periodMonth;
 
-  @Column(name = "created_by", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, nullable = false, columnDefinition = "char(26)")
   private String createdBy;
 
   @Column(name = "created_at", nullable = false)

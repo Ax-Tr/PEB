@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A request to collect money from a customer. Amounts are integer paise. Payment is confirmed
@@ -20,13 +22,16 @@ import java.time.Instant;
 public class PaymentRequest {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "customer_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "customer_id", length = 26, columnDefinition = "char(26)")
   private String customerId;
 
   @Column(nullable = false)
@@ -47,7 +52,8 @@ public class PaymentRequest {
   @Column(nullable = false)
   private PaymentStatus status;
 
-  @Column(name = "invoice_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invoice_id", length = 26, columnDefinition = "char(26)")
   private String invoiceId;
 
   private String provider;

@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A monthly payroll run for a business. Unique per (tenant, year, month) — cannot be double-run.
@@ -15,10 +17,12 @@ import java.time.Instant;
 public class SalaryRun {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -51,7 +55,8 @@ public class SalaryRun {
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
-  @Column(name = "created_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, columnDefinition = "char(26)")
   private String createdBy;
 
   @Version private long version;

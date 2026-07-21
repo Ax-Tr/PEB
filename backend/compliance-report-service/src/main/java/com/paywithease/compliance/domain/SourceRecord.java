@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A period read-model row built from an upstream event (a sale, purchase, or payroll run). */
 @Entity
@@ -12,10 +14,12 @@ import java.time.Instant;
 public class SourceRecord {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "record_type", nullable = false)
@@ -42,7 +46,8 @@ public class SourceRecord {
   @Column(name = "supply_type")
   private String supplyType;
 
-  @Column(name = "source_ref", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_ref", length = 26, nullable = false, columnDefinition = "char(26)")
   private String sourceRef;
 
   private String reference;

@@ -9,6 +9,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A payment promise with due-date and outstanding-balance tracking. */
 @Entity
@@ -16,16 +18,19 @@ import java.time.LocalDate;
 public class Commitment {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "counterparty_type", nullable = false)
   private String counterpartyType;
 
-  @Column(name = "counterparty_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "counterparty_id", length = 26, columnDefinition = "char(26)")
   private String counterpartyId;
 
   @Column(name = "counterparty_name")
@@ -34,7 +39,8 @@ public class Commitment {
   @Column(name = "source_type", nullable = false)
   private String sourceType;
 
-  @Column(name = "source_ref", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_ref", length = 26, columnDefinition = "char(26)")
   private String sourceRef;
 
   @Column private String description;
@@ -51,7 +57,8 @@ public class Commitment {
   @Column(nullable = false)
   private String status;
 
-  @Column(name = "created_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "created_by", length = 26, columnDefinition = "char(26)")
   private String createdBy;
 
   @Column(name = "created_at", nullable = false)

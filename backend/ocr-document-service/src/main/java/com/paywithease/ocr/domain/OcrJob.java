@@ -8,19 +8,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "ocr_jobs")
 public class OcrJob {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "document_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "document_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String documentId;
 
   @Column(name = "document_type", nullable = false)
@@ -52,7 +57,8 @@ public class OcrJob {
   @Column(name = "reviewed_at")
   private Instant reviewedAt;
 
-  @Column(name = "reviewed_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reviewed_by", length = 26, columnDefinition = "char(26)")
   private String reviewedBy;
 
   protected OcrJob() {}

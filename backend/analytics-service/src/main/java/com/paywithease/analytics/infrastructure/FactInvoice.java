@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Revenue + receivable projection (one row per invoice), fed from {@code INVOICE_GENERATED}. */
 @Entity
@@ -13,19 +15,23 @@ import java.time.LocalDate;
 public class FactInvoice {
 
   @Id
-  @Column(name = "invoice_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invoice_id", length = 26, columnDefinition = "char(26)")
   private String invoiceId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "invoice_number")
   private String invoiceNumber;
 
-  @Column(name = "customer_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "customer_id", length = 26, columnDefinition = "char(26)")
   private String customerId;
 
-  @Column(name = "branch_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "branch_id", length = 26, columnDefinition = "char(26)")
   private String branchId;
 
   @Column(name = "invoice_date", nullable = false)

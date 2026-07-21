@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Per-(tenant, stream) freshness watermark: when the read-model was last advanced by an event. */
 @Entity
@@ -13,13 +15,15 @@ public class StreamWatermark {
 
   @Id private String id; // tenant_id + '|' + stream
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
   private String stream;
 
-  @Column(name = "last_event_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "last_event_id", length = 26, columnDefinition = "char(26)")
   private String lastEventId;
 
   @Column(name = "last_processed_at", nullable = false)

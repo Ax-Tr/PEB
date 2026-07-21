@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A GST document (tax invoice, bill of supply, receipt voucher, credit/debit note). All document
@@ -18,10 +20,12 @@ import java.time.LocalDate;
 public class Invoice {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "document_type", nullable = false)
@@ -30,7 +34,8 @@ public class Invoice {
   @Column(name = "supply_type", nullable = false)
   private String supplyType;
 
-  @Column(name = "customer_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "customer_id", length = 26, columnDefinition = "char(26)")
   private String customerId;
 
   @Column(name = "customer_name")
@@ -54,7 +59,8 @@ public class Invoice {
   @Column(name = "invoice_date", nullable = false)
   private LocalDate invoiceDate;
 
-  @Column(name = "original_document_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "original_document_id", length = 26, columnDefinition = "char(26)")
   private String originalDocumentId;
 
   @Column(name = "reason")
@@ -87,7 +93,8 @@ public class Invoice {
   @Column(name = "status", nullable = false)
   private String status = "ISSUED";
 
-  @Column(name = "payment_request_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "payment_request_id", length = 26, columnDefinition = "char(26)")
   private String paymentRequestId;
 
   @Column(name = "created_at", nullable = false)

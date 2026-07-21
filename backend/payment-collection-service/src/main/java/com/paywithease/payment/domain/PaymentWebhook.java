@@ -18,10 +18,12 @@ import org.hibernate.type.SqlTypes;
 public class PaymentWebhook {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)

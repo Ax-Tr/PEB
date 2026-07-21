@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A scheduled reminder to fire on {@code sendOn} (a D-3/D-1/D-day offset from a due date). */
 @Entity
@@ -13,16 +15,19 @@ import java.time.LocalDate;
 public class ReminderSchedule {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "source_type")
   private String sourceType;
 
-  @Column(name = "source_ref", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_ref", length = 26, columnDefinition = "char(26)")
   private String sourceRef;
 
   @Column(name = "emi_number")

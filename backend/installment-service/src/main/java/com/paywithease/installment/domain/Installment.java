@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A receivable/payable EMI schedule. Tracks outstanding balance and closes at zero. */
 @Entity
@@ -15,16 +17,19 @@ import java.time.Instant;
 public class Installment {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
   private String type;
 
-  @Column(name = "counterparty_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "counterparty_id", length = 26, columnDefinition = "char(26)")
   private String counterpartyId;
 
   @Column(name = "counterparty_name")
@@ -33,7 +38,8 @@ public class Installment {
   @Column(name = "source_type")
   private String sourceType;
 
-  @Column(name = "source_ref", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_ref", length = 26, columnDefinition = "char(26)")
   private String sourceRef;
 
   @Column(name = "total_amount_minor", nullable = false)

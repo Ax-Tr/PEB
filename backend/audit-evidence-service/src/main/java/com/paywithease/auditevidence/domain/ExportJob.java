@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * An auditor export job with a small state machine: REQUESTED → PROCESSING → COMPLETED | FAILED.
@@ -17,10 +19,12 @@ import java.time.Instant;
 public class ExportJob {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -29,7 +33,8 @@ public class ExportJob {
   @Column(nullable = false)
   private String status;
 
-  @Column(name = "requested_by", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "requested_by", length = 26, nullable = false, columnDefinition = "char(26)")
   private String requestedBy;
 
   @Column(name = "result_ref")

@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A governed AI suggestion. Carries its confidence and governance decision; humans accept/reject.
@@ -16,10 +18,12 @@ import java.time.Instant;
 public class AiSuggestion {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -28,7 +32,8 @@ public class AiSuggestion {
   @Column(name = "subject_type", nullable = false)
   private String subjectType;
 
-  @Column(name = "subject_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "subject_id", length = 26, columnDefinition = "char(26)")
   private String subjectId;
 
   @Column(nullable = false, columnDefinition = "jsonb")
@@ -46,7 +51,8 @@ public class AiSuggestion {
   @Column(name = "model_ref")
   private String modelRef;
 
-  @Column(name = "reviewed_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reviewed_by", length = 26, columnDefinition = "char(26)")
   private String reviewedBy;
 
   @Column(name = "created_at", nullable = false)

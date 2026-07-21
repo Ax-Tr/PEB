@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** One debit or credit line of a journal entry (never both sides on one line). */
 @Entity
@@ -11,16 +13,20 @@ import jakarta.persistence.Table;
 public class JournalEntryLine {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "journal_entry_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "journal_entry_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String journalEntryId;
 
-  @Column(name = "account_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "account_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String accountId;
 
   @Column(name = "account_code", nullable = false)

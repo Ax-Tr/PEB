@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A single line of a month-end close checklist. */
 @Entity
@@ -12,13 +14,16 @@ import java.time.Instant;
 public class CloseChecklistItem {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "checklist_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "checklist_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String checklistId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -30,7 +35,8 @@ public class CloseChecklistItem {
   @Column(nullable = false)
   private boolean done;
 
-  @Column(name = "done_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "done_by", length = 26, columnDefinition = "char(26)")
   private String doneBy;
 
   @Column(name = "done_at")

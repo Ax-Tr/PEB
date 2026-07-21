@@ -5,16 +5,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "documents")
 public class DocumentRecord {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "storage_key", nullable = false)
@@ -31,7 +35,8 @@ public class DocumentRecord {
   @Column(name = "size_bytes", nullable = false)
   private long sizeBytes;
 
-  @Column(name = "uploaded_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "uploaded_by", length = 26, columnDefinition = "char(26)")
   private String uploadedBy;
 
   @Column(name = "created_at", nullable = false)

@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A single line on an invoice with its computed GST split. Amounts are integer paise. */
 @Entity
@@ -12,16 +14,20 @@ import java.math.BigDecimal;
 public class InvoiceItem {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "invoice_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invoice_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String invoiceId;
 
-  @Column(name = "product_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "product_id", length = 26, columnDefinition = "char(26)")
   private String productId;
 
   @Column(name = "description", nullable = false)

@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Product/service profitability projection (one row per invoice line). Populated only when source
@@ -15,16 +17,20 @@ import java.math.BigDecimal;
 public class FactProductSale {
 
   @Id
-  @Column(name = "line_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "line_id", length = 26, columnDefinition = "char(26)")
   private String lineId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "invoice_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "invoice_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String invoiceId;
 
-  @Column(name = "product_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "product_id", length = 26, columnDefinition = "char(26)")
   private String productId;
 
   @Column(name = "product_name")

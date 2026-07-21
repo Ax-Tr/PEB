@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** An anomaly alert raised by the detector; a human acknowledges or dismisses it. */
 @Entity
@@ -14,16 +16,19 @@ import java.time.Instant;
 public class AnomalyAlert {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "subject_type", nullable = false)
   private String subjectType;
 
-  @Column(name = "subject_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "subject_id", length = 26, columnDefinition = "char(26)")
   private String subjectId;
 
   @Column(nullable = false)
@@ -43,7 +48,8 @@ public class AnomalyAlert {
 
   @Column private String detail;
 
-  @Column(name = "acknowledged_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "acknowledged_by", length = 26, columnDefinition = "char(26)")
   private String acknowledgedBy;
 
   @Column(name = "created_at", nullable = false)

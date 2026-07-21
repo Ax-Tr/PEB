@@ -8,6 +8,8 @@ import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A business expense that goes through maker-checker approval. Status is a String: {@code
@@ -24,10 +26,12 @@ public class Expense {
   public static final String APPROVED = "APPROVED";
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(name = "category", nullable = false)
@@ -45,7 +49,8 @@ public class Expense {
   @Column(name = "input_gst_minor", nullable = false)
   private long inputGstMinor;
 
-  @Column(name = "vendor_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "vendor_id", length = 26, columnDefinition = "char(26)")
   private String vendorId;
 
   @Column(name = "expense_date", nullable = false)
@@ -54,7 +59,8 @@ public class Expense {
   @Column(name = "status", nullable = false)
   private String status = PENDING_APPROVAL;
 
-  @Column(name = "approved_by", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "approved_by", length = 26, columnDefinition = "char(26)")
   private String approvedBy;
 
   @Column(name = "approved_at")

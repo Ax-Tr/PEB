@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A record of one outbound notification and its delivery lifecycle. */
 @Entity
@@ -12,10 +14,12 @@ import java.time.Instant;
 public class NotificationLog {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -46,7 +50,8 @@ public class NotificationLog {
   @Column(nullable = false)
   private int attempts;
 
-  @Column(name = "reminder_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "reminder_id", length = 26, columnDefinition = "char(26)")
   private String reminderId;
 
   @Column(name = "created_at", nullable = false)

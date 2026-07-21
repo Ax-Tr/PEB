@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Immutable lifecycle event for a commitment. */
 @Entity
@@ -13,13 +15,16 @@ import java.time.LocalDate;
 public class CommitmentEvent {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "commitment_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "commitment_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String commitmentId;
 
   @Column(name = "event_type", nullable = false)
@@ -36,7 +41,8 @@ public class CommitmentEvent {
 
   @Column private String note;
 
-  @Column(name = "actor_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "actor_id", length = 26, columnDefinition = "char(26)")
   private String actorId;
 
   @Column(name = "occurred_at", nullable = false)

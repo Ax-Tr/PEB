@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** Append-only maker-checker decision record. */
 @Entity
@@ -12,19 +14,23 @@ import java.time.Instant;
 public class PayoutApproval {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "payout_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "payout_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String payoutId;
 
   @Column(nullable = false)
   private String decision; // APPROVED, REJECTED
 
-  @Column(name = "approver_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "approver_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String approverId;
 
   private String reason;

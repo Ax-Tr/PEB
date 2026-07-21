@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Cost + payable projection (one row per purchase bill), fed from {@code PURCHASE_BILL_CREATED}.
@@ -15,16 +17,20 @@ import java.time.LocalDate;
 public class FactPurchase {
 
   @Id
-  @Column(name = "bill_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "bill_id", length = 26, columnDefinition = "char(26)")
   private String billId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "vendor_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "vendor_id", length = 26, columnDefinition = "char(26)")
   private String vendorId;
 
-  @Column(name = "branch_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "branch_id", length = 26, columnDefinition = "char(26)")
   private String branchId;
 
   @Column(name = "bill_date", nullable = false)

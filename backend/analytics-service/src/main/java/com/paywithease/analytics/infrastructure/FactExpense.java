@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Operating expense projection (one row per approved expense), fed from {@code EXPENSE_APPROVED}.
@@ -15,15 +17,18 @@ import java.time.LocalDate;
 public class FactExpense {
 
   @Id
-  @Column(name = "expense_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "expense_id", length = 26, columnDefinition = "char(26)")
   private String expenseId;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column private String category;
 
-  @Column(name = "branch_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "branch_id", length = 26, columnDefinition = "char(26)")
   private String branchId;
 
   @Column(name = "occurred_on", nullable = false)

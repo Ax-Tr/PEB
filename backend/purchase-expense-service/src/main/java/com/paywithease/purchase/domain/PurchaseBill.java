@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A vendor purchase bill with the input GST (ITC) computed via the shared GST engine. Amounts are
@@ -17,13 +19,16 @@ import java.time.LocalDate;
 public class PurchaseBill {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "vendor_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "vendor_id", length = 26, columnDefinition = "char(26)")
   private String vendorId;
 
   @Column(name = "vendor_name")

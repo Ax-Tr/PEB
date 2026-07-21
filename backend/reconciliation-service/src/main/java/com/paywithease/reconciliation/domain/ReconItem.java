@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A normalized reconcilable item from either side, matched at most once. */
 @Entity
@@ -13,10 +15,12 @@ import java.time.LocalDate;
 public class ReconItem {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
   @Column(nullable = false)
@@ -25,7 +29,8 @@ public class ReconItem {
   @Column(name = "source_type", nullable = false)
   private String sourceType;
 
-  @Column(name = "source_ref", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "source_ref", length = 26, nullable = false, columnDefinition = "char(26)")
   private String sourceRef;
 
   @Column(nullable = false)
@@ -44,7 +49,8 @@ public class ReconItem {
   @Column(nullable = false)
   private boolean matched;
 
-  @Column(name = "match_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "match_id", length = 26, columnDefinition = "char(26)")
   private String matchId;
 
   @Column(name = "created_at", nullable = false)

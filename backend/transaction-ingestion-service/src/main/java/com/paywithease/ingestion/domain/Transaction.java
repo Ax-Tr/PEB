@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A captured cash/bank/UPI/settlement transaction with its classification + reconciliation state.
@@ -16,13 +18,16 @@ import java.time.LocalDate;
 public class Transaction {
 
   @Id
-  @Column(length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(length = 26, columnDefinition = "char(26)")
   private String id;
 
-  @Column(name = "tenant_id", length = 26, nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "tenant_id", length = 26, nullable = false, columnDefinition = "char(26)")
   private String tenantId;
 
-  @Column(name = "bank_account_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "bank_account_id", length = 26, columnDefinition = "char(26)")
   private String bankAccountId;
 
   @Column(nullable = false)
@@ -58,7 +63,8 @@ public class Transaction {
   @Column(nullable = false)
   private boolean reconciled;
 
-  @Column(name = "import_batch_id", length = 26)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "import_batch_id", length = 26, columnDefinition = "char(26)")
   private String importBatchId;
 
   @Column(name = "created_at", nullable = false)
