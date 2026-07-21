@@ -173,52 +173,6 @@ CREATE TABLE products (
 CREATE INDEX ix_product_tenant ON products (tenant_id, status);
 CREATE UNIQUE INDEX ux_product_sku ON products (tenant_id, sku) WHERE sku IS NOT NULL;
 
--- ===== INVOICE-GST MODULE =====
-CREATE TABLE invoices (
-    id                  char(26)    PRIMARY KEY,
-    tenant_id           char(26)    NOT NULL,
-    invoice_number      text        NOT NULL,
-    customer_id         char(26),
-    status              text        NOT NULL DEFAULT 'DRAFT',
-    issue_date          date        NOT NULL,
-    due_date            date,
-    subtotal_minor      bigint      NOT NULL DEFAULT 0,
-    discount_minor      bigint      NOT NULL DEFAULT 0,
-    tax_minor           bigint      NOT NULL DEFAULT 0,
-    total_minor         bigint      NOT NULL DEFAULT 0,
-    amount_paid_minor   bigint      NOT NULL DEFAULT 0,
-    place_of_supply     char(2),
-    reverse_charge      boolean     NOT NULL DEFAULT false,
-    notes               text,
-    terms               text,
-    created_at          timestamptz NOT NULL DEFAULT now(),
-    updated_at          timestamptz NOT NULL DEFAULT now(),
-    version             bigint      NOT NULL DEFAULT 0,
-    UNIQUE (tenant_id, invoice_number)
-);
-CREATE INDEX ix_invoice_tenant ON invoices (tenant_id, issue_date DESC);
-CREATE INDEX ix_invoice_customer ON invoices (tenant_id, customer_id) WHERE customer_id IS NOT NULL;
-
-CREATE TABLE invoice_line_items (
-    id              char(26)    PRIMARY KEY,
-    invoice_id      char(26)    NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
-    tenant_id       char(26)    NOT NULL,
-    product_id      char(26),
-    description     text        NOT NULL,
-    hsn_sac         text,
-    quantity        numeric(12,3) NOT NULL DEFAULT 1,
-    unit            text        NOT NULL DEFAULT 'NOS',
-    rate_minor      bigint      NOT NULL,
-    discount_minor  bigint      NOT NULL DEFAULT 0,
-    taxable_minor   bigint      NOT NULL,
-    cgst_minor      bigint      NOT NULL DEFAULT 0,
-    sgst_minor      bigint      NOT NULL DEFAULT 0,
-    igst_minor      bigint      NOT NULL DEFAULT 0,
-    cess_minor      bigint      NOT NULL DEFAULT 0,
-    total_minor     bigint      NOT NULL,
-    sort_order      int         NOT NULL DEFAULT 0
-);
-CREATE INDEX ix_invoice_line_items ON invoice_line_items (invoice_id, sort_order);
 
 -- ===== PURCHASE-EXPENSE MODULE =====
 CREATE TABLE purchase_bills (
