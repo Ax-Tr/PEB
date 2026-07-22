@@ -64,4 +64,12 @@ public class PaymentRequestController {
         qr == null ? null : qr.getUpiUri(),
         qr == null ? null : qr.getPaymentLink());
   }
+
+  @PostMapping("/{id}/simulate-payment")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Simulate payment received (local testing)")
+  public PaymentDtos.PaymentResponse simulatePayment(@PathVariable String id) {
+    service.markPaid(id);
+    return get(id);
+  }
 }

@@ -42,6 +42,7 @@ public class ReminderSchedule {
   @Column(nullable = false)
   private String recipient;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb", nullable = false)
   private String variables;
 

@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A vendor/supplier of a tenant. Sensitive contact and tax fields are encrypted at rest. */
 @Entity
@@ -15,9 +17,11 @@ import java.time.Instant;
 public class Vendor {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 

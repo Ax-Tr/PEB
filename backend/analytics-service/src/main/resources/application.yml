@@ -1,8 +1,8 @@
 spring:
   application:
-    name: finance-service
+    name: analytics-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/finance_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/analytics_db}
     username: ${DB_USER:peb}
     password: ${DB_PASSWORD:peb}
     hikari:
@@ -10,7 +10,7 @@ spring:
       connection-timeout: 5000
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -36,7 +36,7 @@ spring:
           jwk-set-uri: ${IDENTITY_JWKS_URI:http://localhost:8081/oauth2/jwks}
 
 server:
-  port: ${PORT:8083}
+  port: ${PORT:8097}
   shutdown: graceful
 
 management:
@@ -51,7 +51,7 @@ management:
       show-details: when_authorized
   metrics:
     tags:
-      service: finance-service
+      service: analytics-service
   tracing:
     sampling:
       probability: 1.0
@@ -67,8 +67,3 @@ resilience4j:
         slidingWindowSize: 20
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
-
-logging:
-  level:
-    org.springframework.web: DEBUG
-

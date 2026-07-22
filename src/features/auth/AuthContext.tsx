@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { auth } from "../../shared/api";
+import { auth, demoMode } from "../../shared/api";
 import { unregisterPush } from "../../shared/push";
 
 interface AuthState {
@@ -19,6 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const [hasTenant, setHasTenant] = useState(false);
 
   const refreshAuthed = useCallback(async () => {
+    // In demo mode, skip the real token check — auto-authenticate.
+    if (demoMode) {
+      setAuthed(true);
+      setHasTenant(true);
+      return;
+    }
     const isAuth = await auth.isAuthenticated();
     setAuthed(isAuth);
     if (isAuth) {
@@ -29,12 +35,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   }, []);
 
   const refreshTenant = useCallback(async () => {
+    if (demoMode) {
+      setHasTenant(true);
+      return;
+    }
     setHasTenant(await auth.hasTenant());
   }, []);
 
   const logout = useCallback(async () => {
-    await unregisterPush(); // best-effort, while the session is still valid
-    await auth.logout();
+    if (!demoMode) {
+      await unregisterPush(); // best-effort, while the session is still valid
+      await auth.logout();
+    }
     setAuthed(false);
     setHasTenant(false);
   }, []);

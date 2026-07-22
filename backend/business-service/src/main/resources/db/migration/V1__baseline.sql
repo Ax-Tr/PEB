@@ -231,22 +231,25 @@ CREATE INDEX ix_expense_tenant ON expenses (tenant_id, expense_date DESC);
 
 -- ===== COMMITMENT MODULE =====
 CREATE TABLE commitments (
-    id              char(26)    PRIMARY KEY,
-    tenant_id       char(26)    NOT NULL,
-    type            text        NOT NULL,
-    counterparty_id char(26),
+    id                char(26)    PRIMARY KEY,
+    tenant_id         char(26)    NOT NULL,
     counterparty_type text,
-    description     text        NOT NULL,
-    amount_minor    bigint      NOT NULL,
-    start_date      date        NOT NULL,
-    end_date        date,
-    recurrence      text,
-    status          text        NOT NULL DEFAULT 'ACTIVE',
-    created_at      timestamptz NOT NULL DEFAULT now(),
-    updated_at      timestamptz NOT NULL DEFAULT now(),
-    version         bigint      NOT NULL DEFAULT 0
+    counterparty_id   char(26),
+    counterparty_name text,
+    source_type       text,
+    source_ref        char(26),
+    description       text        NOT NULL,
+    amount_minor      bigint      NOT NULL,
+    paid_minor        bigint      NOT NULL DEFAULT 0,
+    due_date          date        NOT NULL,
+    status            text        NOT NULL DEFAULT 'ACTIVE',
+    created_by        char(26),
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    updated_at        timestamptz NOT NULL DEFAULT now(),
+    closed_at         timestamptz,
+    version           bigint      NOT NULL DEFAULT 0
 );
-CREATE INDEX ix_commitment_tenant ON commitments (tenant_id, status, start_date);
+CREATE INDEX ix_commitment_tenant ON commitments (tenant_id, status, due_date);
 
 -- ===== NOTIFICATION MODULE =====
 CREATE TABLE notification_templates (

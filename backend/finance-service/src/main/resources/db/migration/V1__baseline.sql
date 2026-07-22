@@ -165,35 +165,38 @@ CREATE INDEX ix_journal_lines_journal ON journal_lines (journal_id);
 CREATE INDEX ix_journal_lines_account ON journal_lines (tenant_id, account_id);
 
 -- ===== INSTALLMENT MODULE =====
-CREATE TABLE installment_plans (
+CREATE TABLE installments (
     id                char(26)    PRIMARY KEY,
     tenant_id         char(26)    NOT NULL,
-    customer_id       char(26),
-    invoice_id        char(26),
-    total_minor       bigint      NOT NULL,
-    num_installments  int         NOT NULL,
-    frequency         text        NOT NULL DEFAULT 'MONTHLY',
-    start_date        date        NOT NULL,
+    type              text        NOT NULL,
+    counterparty_id   char(26),
+    counterparty_name text,
+    source_type       text,
+    source_ref        char(26),
+    total_amount_minor bigint     NOT NULL,
+    outstanding_minor  bigint     NOT NULL,
+    number_of_emis    int         NOT NULL,
+    frequency         text        NOT NULL,
     status            text        NOT NULL DEFAULT 'ACTIVE',
     created_at        timestamptz NOT NULL DEFAULT now(),
+    updated_at        timestamptz NOT NULL DEFAULT now(),
     version           bigint      NOT NULL DEFAULT 0
 );
-CREATE INDEX ix_installment_plan_tenant ON installment_plans (tenant_id, status);
+CREATE INDEX ix_installment_tenant ON installments (tenant_id, status);
 
-CREATE TABLE installments (
+CREATE TABLE installment_emis (
     id              char(26)    PRIMARY KEY,
     tenant_id       char(26)    NOT NULL,
-    plan_id         char(26)    NOT NULL REFERENCES installment_plans(id),
+    installment_id  char(26)    NOT NULL REFERENCES installments(id),
     emi_number      int         NOT NULL,
-    amount_minor    bigint      NOT NULL,
     due_date        date        NOT NULL,
+    amount_minor    bigint      NOT NULL,
+    paid_minor      bigint      NOT NULL,
     status          text        NOT NULL DEFAULT 'PENDING',
     paid_at         timestamptz,
-    payment_ref     char(26),
-    created_at      timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (plan_id, emi_number)
+    UNIQUE (installment_id, emi_number)
 );
-CREATE INDEX ix_installment_due ON installments (tenant_id, due_date) WHERE status = 'PENDING';
+CREATE INDEX ix_installment_emi_due ON installment_emis (tenant_id, due_date) WHERE status = 'PENDING';
 
 -- ===== TRANSACTION-INGESTION MODULE =====
 CREATE TABLE bank_accounts (

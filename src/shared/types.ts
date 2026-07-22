@@ -259,7 +259,7 @@ export interface StartOcrJobRequest {
 
 // --- Payment collection (payment-collection-service) ---
 export interface PaymentRequest {
-  paymentRequestId: string;
+  requestId: string;
   reference: string;
   status: string;
   amountMinor: Minor;

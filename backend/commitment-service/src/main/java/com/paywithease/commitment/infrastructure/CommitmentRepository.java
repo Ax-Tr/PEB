@@ -17,8 +17,8 @@ public interface CommitmentRepository extends JpaRepository<Commitment, String> 
 
   @Query(
       "select c from Commitment c where c.tenantId = :tenantId "
-          + "and (:status is null or c.status = :status) "
-          + "and (:counterpartyType is null or c.counterpartyType = :counterpartyType) "
+          + "and (cast(:status as string) is null or c.status = :status) "
+          + "and (cast(:counterpartyType as string) is null or c.counterpartyType = :counterpartyType) "
           + "order by c.dueDate asc, c.createdAt desc")
   List<Commitment> list(
       @Param("tenantId") String tenantId,

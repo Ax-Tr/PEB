@@ -253,6 +253,28 @@ public class PaymentService {
     return new WebhookOutcome(result, request.getId());
   }
 
+  @Transactional
+  public void markPaid(String id) {
+    PaymentRequest request = get(id);
+    PaymentRequest.Applied applied =
+        request.applyPayment(request.getAmountMinor(), clock.instant());
+    requests.save(request);
+    emit(
+        "PAYMENT_RECEIVED",
+        request,
+        Map.of(
+            "appliedMinor", applied.appliedMinor(),
+            "overpaidMinor", applied.overpaidMinor(),
+            "amountPaidMinor", request.getAmountPaidMinor(),
+            "fullyPaid", applied.fullyPaid(),
+            "providerPaymentId", "simulated"));
+    audit.record(
+        "PAYMENT_RECEIVED",
+        "payment_request",
+        request.getId(),
+        Map.of("appliedMinor", applied.appliedMinor(), "fullyPaid", applied.fullyPaid()));
+  }
+
   private GatewayEvent parse(String rawBody) {
     try {
       GatewayEvent event = objectMapper.readValue(rawBody, GatewayEvent.class);

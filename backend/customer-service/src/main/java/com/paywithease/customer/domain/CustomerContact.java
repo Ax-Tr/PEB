@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** An additional contact channel for a customer (PHONE/EMAIL/WHATSAPP). Value is encrypted. */
 @Entity
@@ -14,12 +16,15 @@ import java.time.Instant;
 public class CustomerContact {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "customer_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String customerId;
 

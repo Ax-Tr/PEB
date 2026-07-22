@@ -9,6 +9,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A vendor's bank account for payouts. Account number and IFSC/UPI are encrypted at rest; a blind
@@ -23,12 +25,15 @@ import java.time.Instant;
 public class VendorBankAccount {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "vendor_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String vendorId;
 
@@ -36,6 +41,7 @@ public class VendorBankAccount {
   @Column(name = "account_number_enc", nullable = false)
   private String accountNumber;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "account_number_hash", columnDefinition = "bpchar", length = 64, nullable = false)
   private String accountNumberHash;
 
@@ -61,6 +67,7 @@ public class VendorBankAccount {
   @Column(nullable = false)
   private BankAccountSource source;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "reviewed_by", columnDefinition = "bpchar", length = 26)
   private String reviewedBy;
 

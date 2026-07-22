@@ -63,3 +63,4 @@ infra/**/.env
 *.tfstate
 *.tfstate.*
 .terraform/
+.env

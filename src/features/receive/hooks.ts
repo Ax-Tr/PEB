@@ -19,3 +19,10 @@ export function useCreatePaymentRequest() {
       }),
   });
 }
+
+export function useSimulatePayment() {
+  return useMutation<PaymentRequest, unknown, string>({
+    mutationFn: (id) =>
+      http.post<PaymentRequest>(`${API_PREFIX}/payment-requests/${id}/simulate-payment`, {}),
+  });
+}

@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A customer of a business. Tenant-scoped by {@code tenantId}; mobile is unique per tenant. */
 @Entity
@@ -15,9 +17,11 @@ import java.time.Instant;
 public class Customer {
 
   @Id
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(columnDefinition = "bpchar", length = 26)
   private String id;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "tenant_id", columnDefinition = "bpchar", length = 26, nullable = false)
   private String tenantId;
 
@@ -28,6 +32,7 @@ public class Customer {
   @Column(name = "mobile_enc", nullable = false)
   private String mobile;
 
+  @JdbcTypeCode(SqlTypes.CHAR)
   @Column(name = "mobile_hash", columnDefinition = "bpchar", length = 64, nullable = false)
   private String mobileHash;
 

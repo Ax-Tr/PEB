@@ -71,7 +71,7 @@ spring:
 
       httpclient:
         connect-timeout: 2000
-        response-timeout: 5s
+        response-timeout: 30s
 
 server:
   port: ${PORT:8080}
@@ -96,3 +96,15 @@ logging:
     org.springframework.cloud.gateway: TRACE
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 35s
+

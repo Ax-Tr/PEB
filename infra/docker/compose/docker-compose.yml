@@ -15,18 +15,18 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./init/postgres-init.sh:/docker-entrypoint-initdb.d/10-init-dbs.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U peb"]
+      test: [ "CMD-SHELL", "pg_isready -U peb" ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -45,14 +45,14 @@ services:
     ports:
       - "19092:19092"
     healthcheck:
-      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
+      test: [ "CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'" ]
       interval: 10s
       timeout: 5s
       retries: 12
 
   minio:
     image: minio/minio:latest
-    command: ["server", "/data", "--console-address", ":9001"]
+    command: [ "server", "/data", "--console-address", ":9001" ]
     environment:
       MINIO_ROOT_USER: peb
       MINIO_ROOT_PASSWORD: peb-secret
@@ -62,7 +62,7 @@ services:
     volumes:
       - miniodata:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -90,7 +90,7 @@ services:
       analytics-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       start_period: 30s
@@ -103,11 +103,12 @@ services:
     ports:
       - "8081:8081"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/identity_db
+      DB_URL: jdbc:postgresql://postgres:5432/identity_db?stringtype=unspecified
       DB_USER: peb
       DB_PASSWORD: peb
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP: redpanda:9092
+      PEB_OUTBOX_RELAY_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -116,7 +117,7 @@ services:
       redpanda:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       start_period: 45s
@@ -129,7 +130,7 @@ services:
     ports:
       - "8082:8082"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/business_db
+      DB_URL: jdbc:postgresql://postgres:5432/business_db?stringtype=unspecified
       DB_USER: peb
       DB_PASSWORD: peb
       REDIS_HOST: redis
@@ -138,6 +139,7 @@ services:
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: peb
       MINIO_SECRET_KEY: peb-secret
+      PEB_OUTBOX_RELAY_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -148,7 +150,7 @@ services:
       identity-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       start_period: 45s
@@ -161,12 +163,17 @@ services:
     ports:
       - "8083:8083"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/finance_db
+      DB_URL: jdbc:postgresql://postgres:5432/finance_db?stringtype=unspecified
       DB_USER: peb
       DB_PASSWORD: peb
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP: redpanda:9092
       IDENTITY_JWKS_URI: http://identity-service:8081/oauth2/jwks
+      PEB_PAYOUT_NEW_BENEFICIARY_COOLDOWN_HOURS: 0
+      PEB_OUTBOX_RELAY_ENABLED: "true"
+      PEB_AI_COMMITMENT_URI: http://business-service:8082
+      PEB_AI_GEMINI_API_KEY: ${PEB_AI_GEMINI_API_KEY}
+      PEB_AI_GEMINI_MODEL: gemini-flash-latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -177,7 +184,7 @@ services:
       identity-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       start_period: 45s
@@ -190,7 +197,7 @@ services:
     ports:
       - "8097:8097"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/analytics_db
+      DB_URL: jdbc:postgresql://postgres:5432/analytics_db?stringtype=unspecified
       DB_USER: peb
       DB_PASSWORD: peb
       KAFKA_BOOTSTRAP: redpanda:9092
@@ -203,7 +210,7 @@ services:
       identity-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8097/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8097/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       start_period: 45s
@@ -212,12 +219,12 @@ services:
   # --- Observability plane ---
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.111.0
-    command: ["--config=/etc/otel/config.yaml"]
+    command: [ "--config=/etc/otel/config.yaml" ]
     volumes:
       - ./observability/otel-collector.yaml:/etc/otel/config.yaml:ro
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
 
   prometheus:
     image: prom/prometheus:v2.55.0
@@ -237,13 +244,13 @@ services:
 
   loki:
     image: grafana/loki:3.2.0
-    command: ["-config.file=/etc/loki/local-config.yaml"]
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
     ports:
       - "3100:3100"
 
   tempo:
     image: grafana/tempo:2.6.0
-    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
     volumes:
       - ./observability/tempo.yaml:/etc/tempo/tempo.yaml:ro
     ports:

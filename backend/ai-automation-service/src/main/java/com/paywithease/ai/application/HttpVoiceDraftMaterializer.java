@@ -68,6 +68,21 @@ public class HttpVoiceDraftMaterializer implements VoiceDraftMaterializer {
               headers.set("X-Actor-Id", p.actorId());
               headers.set("X-Correlation-Id", p.correlationId());
             });
+    org.springframework.security.core.Authentication auth =
+        org.springframework.security.core.context.SecurityContextHolder.getContext()
+            .getAuthentication();
+    if (auth
+        instanceof
+        org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+                jwtAuth) {
+      headers.set(
+          org.springframework.http.HttpHeaders.AUTHORIZATION,
+          "Bearer " + jwtAuth.getToken().getTokenValue());
+    } else if (auth != null
+        && auth.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+      headers.set(
+          org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + jwt.getTokenValue());
+    }
   }
 
   private record CommitmentResponse(String id) {}

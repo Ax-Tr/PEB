@@ -34,7 +34,7 @@ public class GeminiAssistant implements AiAssistantPort {
       @Value("${peb.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
           String baseUrl,
       @Value("${peb.ai.gemini.api-key}") String apiKey,
-      @Value("${peb.ai.gemini.model:gemini-3-flash-preview}") String model) {
+      @Value("${peb.ai.gemini.model:gemini-flash-latest}") String model) {
     this.restClient =
         builder
             .baseUrl(baseUrl)

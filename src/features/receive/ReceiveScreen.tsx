@@ -9,7 +9,7 @@ import { TextField } from "../../components/TextField";
 import { ApiError } from "../../shared/http";
 import { parseRupeesToMinor } from "../../shared/money";
 import { theme } from "../../theme/theme";
-import { useCreatePaymentRequest } from "./hooks";
+import { useCreatePaymentRequest, useSimulatePayment } from "./hooks";
 
 /** Collect money: enter an amount, generate a UPI payment request + QR for the customer to scan. */
 export function ReceiveScreen(): React.ReactElement {
@@ -17,6 +17,7 @@ export function ReceiveScreen(): React.ReactElement {
   const [reference, setReference] = useState("");
   const [amountError, setAmountError] = useState<string | undefined>();
   const create = useCreatePaymentRequest();
+  const simulate = useSimulatePayment();
 
   const onCreate = () => {
     setAmountError(undefined);
@@ -71,6 +72,25 @@ export function ReceiveScreen(): React.ReactElement {
           </View>
           <Money minor={result.amountMinor} size="h1" />
           <Text style={styles.sub}>Ref: {result.reference} · Status: {result.status}</Text>
+          <Button
+            title="Received"
+            loading={simulate.isPending}
+            onPress={() => {
+              if (result.requestId) {
+                simulate.mutate(result.requestId, {
+                  onSuccess: () => {
+                    alert("Payment received successfully!");
+                    create.reset();
+                    setAmount("");
+                    setReference("");
+                  },
+                  onError: (err) => {
+                    alert("Failed to mark as received");
+                  }
+                });
+              }
+            }}
+          />
           <Button
             title="New request"
             variant="secondary"
