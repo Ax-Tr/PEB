@@ -1,0 +1,27 @@
+# Exclude backend and infrastructure from Vercel upload
+backend/
+infra/
+
+# Dependencies & Build artifacts
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Gradle & Java artifacts
+.gradle/
+**/build/
+**/bin/
+*.class
+*.log
+
+# Local files & Git
+.git/
+.env
+.env*.local
+*.key
+*.pem
+fix_chars.py
+seed-vendors.ps1
+mappings.json
+deployment_guide.md
