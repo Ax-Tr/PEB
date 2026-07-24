@@ -64,3 +64,4 @@ infra/**/.env
 *.tfstate.*
 .terraform/
 .env
+.vercel
